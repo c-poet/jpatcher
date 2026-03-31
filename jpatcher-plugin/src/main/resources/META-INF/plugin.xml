@@ -1,0 +1,56 @@
+<idea-plugin>
+    <id>cn.cpoet.jpatcher</id>
+    <name>JPatcher</name>
+    <vendor email="llzero54@foxmail.com" url="https://www.cpoet.cn">CPoet</vendor>
+    <description><![CDATA[
+        <p><b>JPatcher</b> is an IntelliJ IDEA plugin designed to quickly generate <b>incremental patch packages</b>.</p>
+        <div>
+            <p><b>Main Features:</b></p>
+            <ul>
+                <li>Select files to include in the patch from the editor window, project tree, VCS (Git/SVN) changes list, etc. 🗂️</li>
+                <li>Quickly generate an incremental patch package in ZIP format from selected files ⚡</li>
+                <li>Automatically generate a path description file 📝</li>
+                <li>Support for MapStruct generated files ♻️</li>
+            </ul>
+        </div>
+        <p><b>JPatcher</b>是一款专为IntelliJ IDEA开发的<b>增量补丁包</b>快速生成插件</p>
+        <div>
+            <p><b>主要功能：</b></p>
+            <ul>
+                <li>支持从编辑窗口、项目树、VCS(GIT/SVN)变更等列表中选择需要生成补丁的文件🗂️</li>
+                <li>选择文件快速生成 ZIP 格式的增量补丁包 ⚡</li>
+                <li>自动生成路径说明文件 📝</li>
+                <li>支持MapStruct生成文件 ♻️</li>
+            </ul>
+        </div>
+        <br />
+        <a href="https://github.com/c-poet/jpatcher">源代码</a>&nbsp;<a href="https://www.cpoet.cn">建议与反馈</a>
+    ]]>
+    </description>
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.vcs</depends>
+    <depends optional="true" config-file="plugin_java.xml">com.intellij.modules.java</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationConfigurable parentId="tools" instance="cn.cpoet.jpatcher.setting.Configurable" id="cn.cpoet.jpatcher.setting.Configurable" displayName="JPatcher"/>
+        <notificationGroup id="JPATCHER_NOTIFICATION_BALLOON" displayType="BALLOON"/>
+    </extensions>
+
+    <actions>
+        <group id="JPatcher_EditorPopupMenu" text="JPatcher" popup="true">
+            <add-to-group group-id="EditorPopupMenu" relative-to-action="EditorToggleColumnMode" anchor="after"/>
+        </group>
+
+        <group id="JPatcher_ProjectViewPopupMenu" text="JPatcher" popup="true">
+            <add-to-group group-id="ProjectViewPopupMenu" relative-to-action="AnalyzeMenu" anchor="after"/>
+        </group>
+
+        <group id="JPatcher_Vcs.RepositoryChangesBrowserMenu" text="JPatcher" popup="true">
+            <add-to-group group-id="Vcs.RepositoryChangesBrowserMenu" relative-to-action="Vcs.EditSource" anchor="after" />
+        </group>
+
+        <group id="JPatcher_ChangesViewPopupMenu" text="JPatcher" popup="true">
+            <add-to-group group-id="ChangesViewPopupMenu" relative-to-action="EditSource" anchor="after" />
+        </group>
+    </actions>
+</idea-plugin>

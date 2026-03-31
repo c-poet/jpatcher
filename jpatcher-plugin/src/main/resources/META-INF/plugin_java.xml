@@ -1,0 +1,32 @@
+<idea-plugin>
+
+    <depends>com.intellij.spring</depends>
+
+    <actions>
+
+        <action id="JPatcher_OpenOutputFileAction" class="cn.cpoet.jpatcher.actions.file.OpenOutputFileAction"/>
+        <action id="JPatcher_OpenOutputFileInExplorerAction" class="cn.cpoet.jpatcher.actions.file.OpenOutputFileInExplorerAction"/>
+
+        <action id="JPatcher_GenPatchPackageAction" class="cn.cpoet.jpatcher.actions.patch.GenPatchPackageAction"/>
+
+        <action id="JPatcher_CopyTargetPathProvider" class="cn.cpoet.jpatcher.actions.java.CopyTargetPathProvider">
+            <add-to-group group-id="CopyFileReference" relative-to-action="CopySourceRootPath" anchor="after"/>
+        </action>
+
+        <group id="JPatcher_File_JAVA">
+            <add-to-group group-id="JPatcher_EditorPopupMenu"/>
+            <separator/>
+            <reference ref="JPatcher_OpenOutputFileAction"/>
+            <reference ref="JPatcher_OpenOutputFileInExplorerAction"/>
+        </group>
+
+        <group id="JPatcher_Patch_JAVA">
+            <add-to-group group-id="JPatcher_EditorPopupMenu"/>
+            <add-to-group group-id="JPatcher_ProjectViewPopupMenu"/>
+            <add-to-group group-id="JPatcher_Vcs.RepositoryChangesBrowserMenu"/>
+            <add-to-group group-id="JPatcher_ChangesViewPopupMenu"/>
+            <separator/>
+            <reference ref="JPatcher_GenPatchPackageAction"/>
+        </group>
+    </actions>
+</idea-plugin>

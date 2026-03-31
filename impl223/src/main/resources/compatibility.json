@@ -1,0 +1,11 @@
+{
+    "since": "223",
+    "packageName": "cn.cpoet.jpatcher.impl223",
+    "items": [
+        {"source": "cn.cpoet.jpatcher.actions.patch.GenPatchConfPanel9", "impl": "cn.cpoet.jpatcher.impl223.actions.patch.GenPatchConfPanel9Impl"},
+        {"source": "cn.cpoet.jpatcher.setting.SettingComponent9", "impl": "cn.cpoet.jpatcher.impl223.setting.SettingComponent9Impl"},
+        {"source": "cn.cpoet.jpatcher.actions.database.CopySingleColJoinAction9", "impl": "cn.cpoet.jpatcher.impl223.actions.database.CopySingleColJoinAction9Impl"},
+        {"source": "cn.cpoet.jpatcher.component.FilterCheckboxTree9", "impl": "cn.cpoet.jpatcher.impl223.component.FilterCheckBoxTree9Impl"},
+        {"source": "cn.cpoet.jpatcher.util.SpringUtil9", "impl": "cn.cpoet.jpatcher.impl223.util.SpringUtil9Impl"}
+    ]
+}

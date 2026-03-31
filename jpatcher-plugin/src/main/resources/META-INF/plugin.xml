@@ -4,6 +4,8 @@
     <vendor email="llzero54@foxmail.com" url="https://www.cpoet.cn">CPoet</vendor>
     <description><![CDATA[
         <p><b>JPatcher</b> is an IntelliJ IDEA plugin designed to quickly generate <b>incremental patch packages</b>.</p>
+        <p>The functionality of this plugin is extracted from<a href="https://github.com/c-poet/cpoet-idea-tool">CPoet Tool</a></p>
+        <p>Suggest pairing <a href="https://github.com/c-poet/patch-assistant-to-java">PatchAssistant4J(补丁助手)</a> Use.</p>
         <div>
             <p><b>Main Features:</b></p>
             <ul>
@@ -14,6 +16,8 @@
             </ul>
         </div>
         <p><b>JPatcher</b>是一款专为IntelliJ IDEA开发的<b>增量补丁包</b>快速生成插件</p>
+        <p>本插件功能提取自<a href="https://github.com/c-poet/cpoet-idea-tool">CPoet Tool</a></p>
+        <p>建议搭配<a href="https://github.com/c-poet/patch-assistant-to-java">补丁助手(PatchAssistant4J)</a>使用。</p>
         <div>
             <p><b>主要功能：</b></p>
             <ul>
@@ -23,13 +27,12 @@
                 <li>支持MapStruct生成文件 ♻️</li>
             </ul>
         </div>
-        <br />
-        <a href="https://github.com/c-poet/jpatcher">源代码</a>&nbsp;<a href="https://www.cpoet.cn">建议与反馈</a>
+        <p><a href="https://github.com/c-poet/jpatcher">源代码</a>&nbsp;&nbsp;<a href="https://www.cpoet.cn">建议与反馈</a>&nbsp;&nbsp;<a href="https://github.com/c-poet/cpoet-idea-tool">CPoet Tool</a><p>
     ]]>
     </description>
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.vcs</depends>
-    <depends optional="true" config-file="plugin_java.xml">com.intellij.modules.java</depends>
+    <depends config-file="plugin_java.xml">com.intellij.modules.java</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <applicationConfigurable parentId="tools" instance="cn.cpoet.jpatcher.setting.Configurable" id="cn.cpoet.jpatcher.setting.Configurable" displayName="JPatcher"/>

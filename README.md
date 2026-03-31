@@ -10,7 +10,9 @@
 
 **JPatcher** 是一款专为IntelliJ IDEA开发的**增量补丁包**快速生成插件。
 
-> 本插件功能提取自 [CPoet Tool](https://github.com/c-poet/cpoet-idea-tool)
+本插件功能提取自 [CPoet Tool](https://github.com/c-poet/cpoet-idea-tool)。
+
+建议搭配[补丁助手(PatchAssistant4J)](https://github.com/c-poet/patch-assistant-to-java)使用。
 
 ## 主要功能 🌟
 

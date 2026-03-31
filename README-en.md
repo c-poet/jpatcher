@@ -10,7 +10,9 @@
 
 **JPatcher** is an IntelliJ IDEA plugin designed to quickly generate **incremental patch packages**.
 
-> The functionality of this plugin is extracted from [CPoot Tool](https://github.com/c-poet/cpoet-idea-tool)
+The functionality of this plugin is extracted from [CPoot Tool](https://github.com/c-poet/cpoet-idea-tool).
+
+Suggest pairing [PatchAssistant4J(补丁助手)](https://github.com/c-poet/patch-assistant-to-java) Use.
 
 ## Main Features 🌟
 

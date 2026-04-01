@@ -45,6 +45,19 @@ public abstract class TreeUtil {
                 addTreeNodeChild(projectNode, moduleNode);
             }
         }
+        List<VirtualFile> dependJars = DependUtil.getDependJars(modules);
+        if (!CollectionUtils.isEmpty(dependJars)) {
+            T librariesNode = createLibrariesNode(func);
+            for (VirtualFile dependJar : dependJars) {
+                T dependJarNode = buildWithFile(dependJar, func);
+                if (dependJarNode != null) {
+                    addTreeNodeChild(librariesNode, dependJarNode);
+                }
+                if (librariesNode.getChildCount() > 0) {
+                    addTreeNodeChild(projectNode, librariesNode);
+                }
+            }
+        }
         return projectNode;
     }
 
@@ -62,21 +75,6 @@ public abstract class TreeUtil {
                 }
             }
         }
-        // 模块依赖Jar文件
-        List<VirtualFile> dependJars = DependUtil.getDependJars(moduleRootManager);
-        if (!CollectionUtils.isEmpty(dependJars)) {
-            if (moduleNode == null) {
-                moduleNode = createModuleNode(module, func);
-            }
-            T librariesNode = createLibrariesNode(func);
-            addTreeNodeChild(moduleNode, librariesNode);
-            for (VirtualFile dependJar : dependJars) {
-                T fileNode = buildWithFile(dependJar, func);
-                if (fileNode != null) {
-                    addTreeNodeChild(librariesNode, fileNode);
-                }
-            }
-        }
         return moduleNode == null || moduleNode.getChildCount() == 0 ? null : moduleNode;
     }
 
@@ -87,9 +85,9 @@ public abstract class TreeUtil {
     }
 
     private static <T extends DefaultMutableTreeNode> T createLibrariesNode(Function<Object, T> func) {
-        T moduleNode = func.apply(null);
-        moduleNode.setUserObject(new TreeNodeInfo(CommonConst.LIBRARIES_NAME, CommonConst.LIBRARIES_NAME));
-        return moduleNode;
+        T libNode = func.apply(null);
+        libNode.setUserObject(new TreeNodeInfo(CommonConst.LIBRARIES_NAME, CommonConst.LIBRARIES_NAME));
+        return libNode;
     }
 
     @SuppressWarnings("all")
@@ -117,7 +115,8 @@ public abstract class TreeUtil {
         if (fileNode.getChildCount() == 0) {
             return null;
         }
-        if (fileNode.getChildCount() == 1) {
+        // 目录只有一个子节点时进行合并显示，排除依赖的jar包
+        if (fileNode.getChildCount() == 1 && !file.getName().endsWith(CommonConst.FILE_EXT_JAR_FULL)) {
             T childNode = (T) fileNode.getChildAt(0);
             TreeNodeInfo nodeInfo = (TreeNodeInfo) childNode.getUserObject();
             if (((VirtualFile) nodeInfo.getObject()).isDirectory()) {
@@ -185,7 +184,7 @@ public abstract class TreeUtil {
         }
         // jar包且子节点全部选中的情况下，直接返回jar包
         if (node instanceof FilterCheckedTreeNode filterNode && node.getUserObject() instanceof TreeNodeInfo info) {
-            if (info.getName().endsWith(CommonConst.FILE_EXT_FULL_JAR) && node.getChildCount() == filterNode.getCheckdChildCount()) {
+            if (info.getName().endsWith(CommonConst.FILE_EXT_JAR_FULL) && node.getChildCount() == filterNode.getCheckdChildCount()) {
                 collects.add((T) info);
                 return;
             }

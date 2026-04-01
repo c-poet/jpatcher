@@ -23,7 +23,7 @@ Suggest pairing [PatchAssistant4J(补丁助手)](https://github.com/c-poet/patch
 
 ## Next Version 📅
 
-- [ ] ✨ Add support for selecting dependent JAR files in the patch generation panel
+- [x] ✨ Add support for selecting dependent JAR files in the patch generation panel
 - [ ] ✨ Allow setting a generation template (name + content) for the patch description file (README.txt)
 
 ## Changelog

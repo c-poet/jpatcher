@@ -28,9 +28,13 @@ import java.util.stream.Stream;
  */
 public abstract class FileUtil {
 
-    /** Unix路径分隔符 */
+    /**
+     * Unix路径分隔符
+     */
     public final static String UNIX_SEPARATOR = "/";
-    /** Windows路径分隔符 */
+    /**
+     * Windows路径分隔符
+     */
     public final static String WINDOWS_SEPARATOR = "\\";
 
     private FileUtil() {
@@ -332,6 +336,30 @@ public abstract class FileUtil {
 
     /**
      * 获取文件信息
+     * <p>依赖的外部文件</p>
+     *
+     * @param sourceFile 源文件
+     * @return 文件信息
+     */
+    public static FileInfo getFileInfo(VirtualFile sourceFile) {
+        FileInfo fileInfo = new FileInfo();
+        fileInfo.setSourceFile(sourceFile);
+        if (DependUtil.isFromJar(sourceFile)) {
+            String fromJarPath = DependUtil.getFromJarPath(sourceFile);
+            if (fromJarPath.endsWith(CommonConst.FILE_EXT_JAR_FULL)) {
+                String path = sourceFile.getPath().substring(0, sourceFile.getPath().indexOf(fromJarPath)) + fromJarPath;
+                VirtualFile virtualFile = FileUtil.getVirtualFile(CommonConst.FS_PROTOCOL_FILE + path, false);
+                fileInfo.setOutputFile(virtualFile);
+            } else {
+                fileInfo.setOutputFile(sourceFile);
+            }
+            fileInfo.setOutputRelativePath(fromJarPath);
+        }
+        return fileInfo;
+    }
+
+    /**
+     * 获取文件信息
      *
      * @param module     模块
      * @param sourceFile 源文件
@@ -341,20 +369,7 @@ public abstract class FileUtil {
         FileInfo fileInfo = new FileInfo();
         fileInfo.setSourceFile(sourceFile);
         VirtualFile sourceRootFile = getSourceRootFile(module, sourceFile);
-        if (sourceRootFile == null) {
-            // 依赖的外部jar内部文件
-            if (DependUtil.isFromJar(sourceFile)) {
-                String fromJarPath = DependUtil.getFromJarPath(sourceFile);
-                if (fromJarPath.endsWith(CommonConst.FILE_EXT_FULL_JAR)) {
-                    String path = sourceFile.getPath().substring(0, sourceFile.getPath().indexOf(fromJarPath)) + fromJarPath;
-                    VirtualFile virtualFile = FileUtil.getVirtualFile(CommonConst.FS_PROTOCOL_FILE + path, false);
-                    fileInfo.setOutputFile(virtualFile);
-                } else {
-                    fileInfo.setOutputFile(sourceFile);
-                }
-                fileInfo.setOutputRelativePath(fromJarPath);
-            }
-        } else {
+        if (sourceRootFile != null) {
             String outputFilePath = getOutputFilePath(sourceRootFile, sourceFile);
             VirtualFile outputFile = getOutputFile(module, outputFilePath);
             fileInfo.setSourceRoot(sourceRootFile);

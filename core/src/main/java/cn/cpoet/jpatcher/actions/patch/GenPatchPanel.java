@@ -1,5 +1,6 @@
 package cn.cpoet.jpatcher.actions.patch;
 
+import cn.cpoet.jpatcher.constant.CommonConst;
 import cn.cpoet.jpatcher.constant.FileBuildTypeExtEnum;
 import cn.cpoet.jpatcher.exception.JPatcherException;
 import cn.cpoet.jpatcher.model.FileInfo;
@@ -412,7 +413,7 @@ public class GenPatchPanel extends JBSplitter {
     }
 
     private void addPatchItem(GenPatchBean patch, GenPatchModuleBean patchModule, VirtualFile sourceFile, boolean isMapStruct) {
-        FileInfo fileInfo = FileUtil.getFileInfo(patchModule.getModule(), sourceFile);
+        FileInfo fileInfo = patchModule.getModule() == null ? FileUtil.getFileInfo(sourceFile) : FileUtil.getFileInfo(patchModule.getModule(), sourceFile);
         if (fileInfo.getOutputFile() == null) {
             patch.setFailed(true);
             UITaskUtil.runUI(() -> Messages.showWarningDialog(project, I18nUtil.tr("actions.patch.GenPatchPackageAction.notFoundOutputFile", sourceFile.getName())
@@ -445,6 +446,9 @@ public class GenPatchPanel extends JBSplitter {
         if (GenPatchProjectTypeEnum.SPRING.equals(patch.getProjectType())) {
             if (patchModule.isApp()) {
                 patch.getDesc().append(SpringUtil.SB_CLASSES_PATH).append(FileUtil.UNIX_SEPARATOR);
+            } else if (patchModule.getModule() == null) {
+                // 依赖的外部文件没有所属的项目模块
+                patch.getDesc().append(SpringUtil.SB_LIB_PATH).append(FileUtil.UNIX_SEPARATOR);
             } else {
                 patch.getDesc().append(SpringUtil.SB_LIB_PATH).append(FileUtil.UNIX_SEPARATOR)
                         .append(patchModule.getModule().getName()).append(FileUtil.UNIX_SEPARATOR);
@@ -517,11 +521,13 @@ public class GenPatchPanel extends JBSplitter {
 
     protected GenPatchModuleBean createGenPatchModule(Module module, GenPatchBean patch) {
         GenPatchModuleBean patchModule = new GenPatchModuleBean();
-        patchModule.setModule(module);
-        if (GenPatchProjectTypeEnum.SPRING.equals(patch.getProjectType())) {
-            ReadAction.run(() -> patchModule.setApp(SpringUtil.isSpringAppModule(project, module)));
-        } else {
-            patchModule.setApp(false);
+        if (module != null) {
+            patchModule.setModule(module);
+            if (GenPatchProjectTypeEnum.SPRING.equals(patch.getProjectType())) {
+                ReadAction.run(() -> patchModule.setApp(SpringUtil.isSpringAppModule(project, module)));
+            } else {
+                patchModule.setApp(false);
+            }
         }
         return patchModule;
     }
@@ -551,6 +557,12 @@ public class GenPatchPanel extends JBSplitter {
 
     protected TreeNodeInfo[] getTreeCheckedNodes() {
         GenPatchTree tree = treePanel.getTree();
-        return tree.getCheckedNodes(TreeNodeInfo.class, (nodeInfo) -> true);
+        return tree.getCheckedNodes(TreeNodeInfo.class, (nodeInfo) -> {
+            // 内部内后续统一处理，需要移除内部类
+            if (nodeInfo.getName().endsWith(CommonConst.FILE_EXT_CLASS_FULL)) {
+                return !nodeInfo.getName().contains(CommonConst.INNER_CLASS_NAME_SPE);
+            }
+            return true;
+        });
     }
 }

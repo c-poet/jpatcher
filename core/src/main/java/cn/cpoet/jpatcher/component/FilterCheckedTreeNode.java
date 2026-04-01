@@ -3,13 +3,17 @@ package cn.cpoet.jpatcher.component;
 import cn.cpoet.jpatcher.model.TreeNodeInfo;
 import com.intellij.ui.CheckedTreeNode;
 
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
+import java.io.Serial;
+import java.util.Enumeration;
 
 /**
  * @author CPoet
  */
 public class FilterCheckedTreeNode extends CheckedTreeNode implements Cloneable {
 
+    @Serial
     private static final long serialVersionUID = -3544383260950329368L;
 
     /** 原节点 */
@@ -64,6 +68,18 @@ public class FilterCheckedTreeNode extends CheckedTreeNode implements Cloneable 
         return treePath;
     }
 
+    public int getCheckdChildCount() {
+        int count = 0;
+        Enumeration<TreeNode> childrened = children();
+        while (childrened.hasMoreElements()) {
+            CheckedTreeNode treeNode = (CheckedTreeNode) childrened.nextElement();
+            if (treeNode.isChecked()) {
+                ++count;
+            }
+        }
+        return count;
+    }
+
     @Override
     public FilterCheckedTreeNode clone() {
         FilterCheckedTreeNode node = (FilterCheckedTreeNode) super.clone();
@@ -71,6 +87,4 @@ public class FilterCheckedTreeNode extends CheckedTreeNode implements Cloneable 
         node.treePath = null;
         return node;
     }
-
-
 }

@@ -2,6 +2,7 @@ package cn.cpoet.jpatcher.actions.patch;
 
 import cn.cpoet.jpatcher.component.FilterCheckboxTree;
 import cn.cpoet.jpatcher.component.FilterCheckedTreeNode;
+import cn.cpoet.jpatcher.constant.CommonConst;
 import cn.cpoet.jpatcher.model.TreeNodeInfo;
 import cn.cpoet.jpatcher.util.TreeUtil;
 import com.intellij.icons.AllIcons;
@@ -36,13 +37,16 @@ public class GenPatchTree extends FilterCheckboxTree {
             ColoredTreeCellRenderer textRenderer = getTextRenderer();
             if (nodeInfo.getObject() instanceof Module) {
                 textRenderer.setIcon(AllIcons.Nodes.Module);
-            } else if (nodeInfo.getObject() instanceof VirtualFile) {
-                VirtualFile file = (VirtualFile) nodeInfo.getObject();
-                if (file.isDirectory()) {
+            } else if (nodeInfo.getObject() instanceof VirtualFile file) {
+                if (file.getName().endsWith(".jar")) {
+                    textRenderer.setIcon(AllIcons.Nodes.PpJar);
+                } else if (file.isDirectory()) {
                     textRenderer.setIcon(AllIcons.Nodes.Folder);
                 } else {
                     textRenderer.setIcon(file.getFileType().getIcon());
                 }
+            } else if (CommonConst.LIBRARIES_NAME.equals(nodeInfo.getObject())) {
+                textRenderer.setIcon(AllIcons.Nodes.PpLibFolder);
             }
             textRenderer.append(nodeInfo.getName());
         }

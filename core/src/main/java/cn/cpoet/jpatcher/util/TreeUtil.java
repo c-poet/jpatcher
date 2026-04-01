@@ -1,5 +1,7 @@
 package cn.cpoet.jpatcher.util;
 
+import cn.cpoet.jpatcher.component.FilterCheckedTreeNode;
+import cn.cpoet.jpatcher.constant.CommonConst;
 import cn.cpoet.jpatcher.model.TreeNodeInfo;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
@@ -9,6 +11,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.CheckedTreeNode;
 import com.intellij.ui.treeStructure.Tree;
 import com.intellij.util.ArrayUtil;
+import org.apache.commons.collections.CollectionUtils;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeNode;
@@ -48,20 +51,44 @@ public abstract class TreeUtil {
     public static <T extends DefaultMutableTreeNode> T buildWithModule(Module module, Function<Object, T> func) {
         ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(module);
         VirtualFile[] sourceRoots = moduleRootManager.getSourceRoots();
-        if (sourceRoots.length == 0) {
-            return null;
-        }
-        T moduleNode = func.apply(module);
-        moduleNode.setUserObject(new TreeNodeInfo(module.getName(), module));
-        for (VirtualFile sourceRoot : sourceRoots) {
-            T fileNode = buildWithFile(sourceRoot, func);
-            if (fileNode != null) {
-                addTreeNodeChild(moduleNode, fileNode);
+        // 模块源文件
+        T moduleNode = null;
+        if (sourceRoots.length != 0) {
+            moduleNode = createModuleNode(module, func);
+            for (VirtualFile sourceRoot : sourceRoots) {
+                T fileNode = buildWithFile(sourceRoot, func);
+                if (fileNode != null) {
+                    addTreeNodeChild(moduleNode, fileNode);
+                }
             }
         }
-        if (moduleNode.getChildCount() == 0) {
-            return null;
+        // 模块依赖Jar文件
+        List<VirtualFile> dependJars = DependUtil.getDependJars(moduleRootManager);
+        if (!CollectionUtils.isEmpty(dependJars)) {
+            if (moduleNode == null) {
+                moduleNode = createModuleNode(module, func);
+            }
+            T librariesNode = createLibrariesNode(func);
+            addTreeNodeChild(moduleNode, librariesNode);
+            for (VirtualFile dependJar : dependJars) {
+                T fileNode = buildWithFile(dependJar, func);
+                if (fileNode != null) {
+                    addTreeNodeChild(librariesNode, fileNode);
+                }
+            }
         }
+        return moduleNode == null || moduleNode.getChildCount() == 0 ? null : moduleNode;
+    }
+
+    private static <T extends DefaultMutableTreeNode> T createModuleNode(Module module, Function<Object, T> func) {
+        T moduleNode = func.apply(module);
+        moduleNode.setUserObject(new TreeNodeInfo(module.getName(), module));
+        return moduleNode;
+    }
+
+    private static <T extends DefaultMutableTreeNode> T createLibrariesNode(Function<Object, T> func) {
+        T moduleNode = func.apply(null);
+        moduleNode.setUserObject(new TreeNodeInfo(CommonConst.LIBRARIES_NAME, CommonConst.LIBRARIES_NAME));
         return moduleNode;
     }
 
@@ -150,17 +177,23 @@ public abstract class TreeUtil {
             if (node.isChecked()
                     && userObject != null
                     && nodeType.isAssignableFrom(userObject.getClass())) {
-                if (filter != null && !filter.accept((T) userObject)) {
-                    return;
+                if (filter == null || filter.accept((T) userObject)) {
+                    collects.add((T) userObject);
                 }
-                collects.add((T) userObject);
             }
-        } else {
-            for (int i = 0; i < node.getChildCount(); ++i) {
-                TreeNode child = node.getChildAt(i);
-                if (child instanceof CheckedTreeNode) {
-                    collectCheckedNodes(nodeType, filter, (CheckedTreeNode) child, collects);
-                }
+            return;
+        }
+        // jar包且子节点全部选中的情况下，直接返回jar包
+        if (node instanceof FilterCheckedTreeNode filterNode && node.getUserObject() instanceof TreeNodeInfo info) {
+            if (info.getName().endsWith(CommonConst.FILE_EXT_FULL_JAR) && node.getChildCount() == filterNode.getCheckdChildCount()) {
+                collects.add((T) info);
+                return;
+            }
+        }
+        for (int i = 0; i < node.getChildCount(); ++i) {
+            TreeNode child = node.getChildAt(i);
+            if (child instanceof CheckedTreeNode) {
+                collectCheckedNodes(nodeType, filter, (CheckedTreeNode) child, collects);
             }
         }
     }

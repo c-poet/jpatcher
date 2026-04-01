@@ -450,7 +450,11 @@ public class GenPatchPanel extends JBSplitter {
                         .append(patchModule.getModule().getName()).append(FileUtil.UNIX_SEPARATOR);
             }
         }
-        patch.getDesc().append(patchItem.getFullPath()).append(FileUtil.UNIX_SEPARATOR).append(patchItem.getOutputFile().getName());
+        if (StringUtils.isBlank(patchItem.getFullPath())) {
+            patch.getDesc().append(patchItem.getOutputFile().getName());
+        } else {
+            patch.getDesc().append(patchItem.getFullPath()).append(FileUtil.UNIX_SEPARATOR).append(patchItem.getOutputFile().getName());
+        }
     }
 
     private void addInner2AttachOutFiles(GenPatchItemBean patchItem) {

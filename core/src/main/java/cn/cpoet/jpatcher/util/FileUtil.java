@@ -1,5 +1,6 @@
 package cn.cpoet.jpatcher.util;
 
+import cn.cpoet.jpatcher.constant.CommonConst;
 import cn.cpoet.jpatcher.constant.FileBuildTypeExtEnum;
 import cn.cpoet.jpatcher.constant.OSExplorerConst;
 import cn.cpoet.jpatcher.exception.JPatcherException;
@@ -340,7 +341,20 @@ public abstract class FileUtil {
         FileInfo fileInfo = new FileInfo();
         fileInfo.setSourceFile(sourceFile);
         VirtualFile sourceRootFile = getSourceRootFile(module, sourceFile);
-        if (sourceRootFile != null) {
+        if (sourceRootFile == null) {
+            // 依赖的外部jar内部文件
+            if (DependUtil.isFromJar(sourceFile)) {
+                String fromJarPath = DependUtil.getFromJarPath(sourceFile);
+                if (fromJarPath.endsWith(CommonConst.FILE_EXT_FULL_JAR)) {
+                    String path = sourceFile.getPath().substring(0, sourceFile.getPath().indexOf(fromJarPath)) + fromJarPath;
+                    VirtualFile virtualFile = FileUtil.getVirtualFile(CommonConst.FS_PROTOCOL_FILE + path, false);
+                    fileInfo.setOutputFile(virtualFile);
+                } else {
+                    fileInfo.setOutputFile(sourceFile);
+                }
+                fileInfo.setOutputRelativePath(fromJarPath);
+            }
+        } else {
             String outputFilePath = getOutputFilePath(sourceRootFile, sourceFile);
             VirtualFile outputFile = getOutputFile(module, outputFilePath);
             fileInfo.setSourceRoot(sourceRootFile);

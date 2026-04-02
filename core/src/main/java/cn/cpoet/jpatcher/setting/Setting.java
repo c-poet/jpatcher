@@ -28,6 +28,16 @@ public final class Setting implements PersistentStateComponent<Setting.State> {
          * 替换补丁包工具所在路径
          */
         public String patchAssistant2JPath;
+
+        /**
+         * 补丁说明文件名称模板
+         */
+        public String readmeNameTemplate;
+
+        /**
+         * 补丁说明文件模板
+         */
+        public String readmeContentTemplate;
     }
 
     private State state = new State();

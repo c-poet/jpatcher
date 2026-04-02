@@ -25,14 +25,16 @@ public class Configurable implements com.intellij.openapi.options.Configurable {
     @Override
     public @Nullable JComponent createComponent() {
         settingComponent = new SettingComponent();
-        return settingComponent.getPanel();
+        return settingComponent.getComponent();
     }
 
     @Override
     public boolean isModified() {
         Setting.State state = Setting.getInstance().getState();
         return !settingComponent.getLanguage().getCode().equals(state.language)
-                || !Objects.equals(settingComponent.getPatchAssistant2JPath(), state.patchAssistant2JPath);
+                || !Objects.equals(settingComponent.getPatchAssistant2JPath(), state.patchAssistant2JPath)
+                || !Objects.equals(settingComponent.getReadmeNameTemplate(), state.readmeNameTemplate)
+                || !Objects.equals(settingComponent.getReadmeContentTemplate(), state.readmeContentTemplate);
     }
 
     @Override
@@ -45,6 +47,8 @@ public class Configurable implements com.intellij.openapi.options.Configurable {
             I18nUtil.updateLocale();
         }
         state.patchAssistant2JPath = settingComponent.getPatchAssistant2JPath();
+        state.readmeNameTemplate = settingComponent.getReadmeNameTemplate();
+        state.readmeContentTemplate = settingComponent.getReadmeContentTemplate();
     }
 
     @Override
@@ -52,6 +56,8 @@ public class Configurable implements com.intellij.openapi.options.Configurable {
         Setting.State state = Setting.getInstance().getState();
         settingComponent.setLanguage(LanguageEnum.ofCode(state.language));
         settingComponent.setPatchAssistant2JPath(state.patchAssistant2JPath);
+        settingComponent.setReadmeNameTemplate(state.readmeNameTemplate);
+        settingComponent.setReadmeContentTemplate(state.readmeContentTemplate);
     }
 
     @Override

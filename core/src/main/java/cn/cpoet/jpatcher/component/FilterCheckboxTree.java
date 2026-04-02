@@ -64,11 +64,7 @@ public class FilterCheckboxTree extends CheckboxTree {
 
     protected FilterCheckedTreeNode filter(FilterCheckedTreeNode node, Predicate<CheckedTreeNode> filter, boolean isRegExpand) {
         if (node.isLeaf()) {
-            if (filter.test(node)) {
-                return cloneNode(node);
-            } else {
-                return null;
-            }
+            return filter.test(node) ? cloneNode(node) : null;
         }
         if (isRegExpand) {
             regOriginNodeExpand(node);
@@ -81,10 +77,7 @@ public class FilterCheckboxTree extends CheckboxTree {
                 newNode.add(newChildNode);
             }
         }
-        if (newNode.getChildCount() == 0 && !node.isRoot()) {
-            return null;
-        }
-        return newNode;
+        return newNode.getChildCount() != 0 || node.isRoot() || filter.test(node) ? newNode : null;
     }
 
     protected void regOriginNodeExpand(FilterCheckedTreeNode node) {

@@ -173,9 +173,7 @@ public abstract class TreeUtil {
                                                 List<T> collects) {
         if (node.isLeaf()) {
             Object userObject = node.getUserObject();
-            if (node.isChecked()
-                    && userObject != null
-                    && nodeType.isAssignableFrom(userObject.getClass())) {
+            if (node.isChecked() && userObject != null && nodeType.isAssignableFrom(userObject.getClass())) {
                 if (filter == null || filter.accept((T) userObject)) {
                     collects.add((T) userObject);
                 }
@@ -184,7 +182,8 @@ public abstract class TreeUtil {
         }
         // jar包且子节点全部选中的情况下，直接返回jar包
         if (node instanceof FilterCheckedTreeNode filterNode && node.getUserObject() instanceof TreeNodeInfo info) {
-            if (info.getName().endsWith(CommonConst.FILE_EXT_JAR_FULL) && node.getChildCount() == filterNode.getCheckdChildCount()) {
+            if (filterNode.isChecked() && info.getName().endsWith(CommonConst.FILE_EXT_JAR_FULL)
+                    && (node.getChildCount() == filterNode.getCheckdChildCount() || filterNode.getCheckdChildCount() == 0)) {
                 collects.add((T) info);
                 return;
             }

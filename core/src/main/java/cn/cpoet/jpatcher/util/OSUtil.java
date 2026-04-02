@@ -1,5 +1,9 @@
 package cn.cpoet.jpatcher.util;
 
+import org.apache.commons.lang3.SystemUtils;
+
+import java.io.File;
+
 /**
  * 系统工具
  *
@@ -7,6 +11,19 @@ package cn.cpoet.jpatcher.util;
  */
 public abstract class OSUtil {
     private OSUtil() {
+    }
+
+    /**
+     * 获取用户桌面路径
+     *
+     * @return 桌面路径，获取不到返回null
+     */
+    public static String getDesktopPath() {
+        File desktop = new File(SystemUtils.getUserHome(), "Desktop");
+        if (desktop.exists() && desktop.isDirectory()) {
+            return desktop.getPath();
+        }
+        return null;
     }
 
     /**

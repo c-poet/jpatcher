@@ -1,6 +1,7 @@
 package cn.cpoet.jpatcher.actions.patch;
 
 import cn.cpoet.jpatcher.constant.CommonConst;
+import cn.cpoet.jpatcher.util.OSUtil;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.State;
@@ -44,7 +45,7 @@ public final class GenPatchSetting implements PersistentStateComponent<GenPatchS
         /**
          * 输出目录
          */
-        public String outputFolder;
+        public String outputFolder = OSUtil.getDesktopPath();
 
         /**
          * 包含路径

@@ -25,6 +25,8 @@ Suggest pairing [PatchAssistant4J(补丁助手)](https://github.com/c-poet/patch
 
 - [x] ✨ Add support for selecting dependent JAR files in the patch generation panel
 - [ ] ✨ Allow setting a generation template (name + content) for the patch description file (README.txt)
+- [ ] ✨ Add jar files filtering criteria to the generation panel
+- [ ] ✨ The default patch output directory is the current user's desktop
 
 ## Changelog
 View: [changes.html](changes.html)

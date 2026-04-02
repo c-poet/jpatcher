@@ -3,6 +3,7 @@ package cn.cpoet.jpatcher.actions.patch;
 import cn.cpoet.jpatcher.component.CustomComboBox;
 import cn.cpoet.jpatcher.component.SimpleHPanel;
 import cn.cpoet.jpatcher.component.TitledPanel;
+import cn.cpoet.jpatcher.constant.CommonConst;
 import cn.cpoet.jpatcher.model.TreeNodeInfo;
 import cn.cpoet.jpatcher.util.I18nUtil;
 import com.intellij.icons.AllIcons;
@@ -105,6 +106,9 @@ public class GenPatchTreePanel extends JBSplitter {
             case SELECTED:
                 doFilterTreeSelected();
                 break;
+            case JAR:
+                doFilterTreeJar();
+                break;
             case PROJECT:
             default:
                 tree.removeFilter();
@@ -136,6 +140,15 @@ public class GenPatchTreePanel extends JBSplitter {
 
     private void doFilterTreeSelected() {
         tree.applyFilter(CheckedTreeNode::isChecked);
+    }
+
+    private void doFilterTreeJar() {
+        tree.applyFilter(node -> {
+            if (node.getUserObject() instanceof TreeNodeInfo info) {
+                return info.getName().endsWith(CommonConst.FILE_EXT_JAR_FULL);
+            }
+            return false;
+        });
     }
 
     private ActionGroup getTreeToolbarActionGroup() {

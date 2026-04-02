@@ -346,7 +346,7 @@ public abstract class FileUtil {
         fileInfo.setSourceFile(sourceFile);
         if (DependUtil.isFromJar(sourceFile)) {
             String fromJarPath = DependUtil.getFromJarPath(sourceFile);
-            if (fromJarPath.endsWith(CommonConst.FILE_EXT_JAR_FULL)) {
+            if (fromJarPath.indexOf(CommonConst.FILE_EXT_JAR_FULL) == fromJarPath.length() - CommonConst.FILE_EXT_JAR.length() - 1) {
                 String path = sourceFile.getPath().substring(0, sourceFile.getPath().indexOf(fromJarPath)) + fromJarPath;
                 VirtualFile virtualFile = FileUtil.getVirtualFile(CommonConst.FS_PROTOCOL_FILE + path, false);
                 fileInfo.setOutputFile(virtualFile);

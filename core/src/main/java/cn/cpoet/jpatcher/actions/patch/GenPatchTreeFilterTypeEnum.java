@@ -20,6 +20,9 @@ public enum GenPatchTreeFilterTypeEnum {
 
     /** 已选择文件 */
     SELECTED("selected", "已选文件"),
+
+    /** jar包 */
+    JAR("jar", "Jar包"),
     ;
 
     private final String code;

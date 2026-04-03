@@ -4,7 +4,10 @@ import cn.cpoet.jpatcher.compatible.CompatibleService;
 import cn.cpoet.jpatcher.component.CustomComboBox;
 import cn.cpoet.jpatcher.component.ScrollVPanel;
 import cn.cpoet.jpatcher.component.TitledPanel;
+import cn.cpoet.jpatcher.setting.Setting;
 import cn.cpoet.jpatcher.util.I18nUtil;
+import cn.cpoet.jpatcher.util.VelocityUtil;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.DocumentAdapter;
@@ -13,11 +16,11 @@ import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
 import com.intellij.util.ui.JBUI;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateFormatUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.event.DocumentEvent;
 import java.awt.event.ItemEvent;
+import java.util.Map;
 
 /**
  * 生成补丁配置面板
@@ -27,7 +30,6 @@ import java.awt.event.ItemEvent;
 public class GenPatchConfPanel extends ScrollVPanel {
 
     private final Project project;
-    private String fileNamePrefix;
     private JBTextField fileNameField;
     private final GenPatchPanel parent;
 
@@ -50,15 +52,10 @@ public class GenPatchConfPanel extends ScrollVPanel {
         GenPatchSetting.State state = setting.getState();
         FormBuilder formBuilder = createFormBuilder();
         fileNameField = new JBTextField();
-        fileNamePrefix = DateFormatUtils.format(System.currentTimeMillis(), "yyyyMMdd") + "_";
         if (StringUtils.isNotBlank(state.lastFileName)) {
-            if (StringUtils.isNotBlank(state.lastFileNamePrefix) && state.lastFileName.startsWith(state.lastFileNamePrefix)) {
-                fileNameField.setText(fileNamePrefix + state.lastFileName.substring(state.lastFileNamePrefix.length()));
-            } else {
-                fileNameField.setText(state.lastFileName);
-            }
+            fileNameField.setText(state.lastFileName);
         } else {
-            fileNameField.setText(fileNamePrefix + project.getName());
+            refreshFileName();
         }
         fileNameField.getDocument().addDocumentListener(new DocumentAdapter() {
             @Override
@@ -66,7 +63,9 @@ public class GenPatchConfPanel extends ScrollVPanel {
                 parent.updateBtnStatus();
             }
         });
-        formBuilder.addLabeledComponent(I18nUtil.t("actions.patch.GenPatchPackageAction.config.fileName"), fileNameField);
+        TextFieldWithBrowseButton fileNameFieldBtn = new TextFieldWithBrowseButton(fileNameField, e -> refreshFileName());
+        fileNameFieldBtn.setButtonIcon(AllIcons.Actions.Refresh);
+        formBuilder.addLabeledComponent(I18nUtil.t("actions.patch.GenPatchPackageAction.config.fileName"), fileNameFieldBtn);
         // 选择输出的目录
         TextFieldWithBrowseButton outputFolderTextField = new TextFieldWithBrowseButton();
         cpbOutputFolderTextField(outputFolderTextField);
@@ -102,6 +101,14 @@ public class GenPatchConfPanel extends ScrollVPanel {
         TitledPanel titledPanel = new TitledPanel(I18nUtil.t("actions.patch.GenPatchPackageAction.config.generalTitle"));
         titledPanel.add(formBuilder.getPanel());
         add2View(titledPanel);
+    }
+
+    private void refreshFileName() {
+        String fileName = Setting.getInstance().getState().patchNameTemplate;
+        if (StringUtils.isNotBlank(fileName)) {
+            fileName = VelocityUtil.render(fileName, project, Map.of());
+        }
+        fileNameField.setText(fileName);
     }
 
     public void buildBeforeGenerate(GenPatchSetting setting) {
@@ -142,10 +149,6 @@ public class GenPatchConfPanel extends ScrollVPanel {
 
     protected FormBuilder createFormBuilder() {
         return FormBuilder.createFormBuilder().setFormLeftIndent(20);
-    }
-
-    public String getFileNamePrefix() {
-        return fileNamePrefix;
     }
 
     public String getFileName() {

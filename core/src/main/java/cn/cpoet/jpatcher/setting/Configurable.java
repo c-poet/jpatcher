@@ -33,7 +33,8 @@ public class Configurable implements com.intellij.openapi.options.Configurable {
         Setting.State state = Setting.getInstance().getState();
         return !settingComponent.getLanguage().getCode().equals(state.language)
                 || !Objects.equals(settingComponent.getPatchAssistant2JPath(), state.patchAssistant2JPath)
-                || !Objects.equals(settingComponent.getReadmeNameTemplate(), state.readmeNameTemplate)
+                || !Objects.equals(settingComponent.getPatchNameTemplate(), state.patchNameTemplate)
+                || !Objects.equals(settingComponent.getReadmeFileName(), state.readmeFileName)
                 || !Objects.equals(settingComponent.getReadmeContentTemplate(), state.readmeContentTemplate);
     }
 
@@ -47,7 +48,8 @@ public class Configurable implements com.intellij.openapi.options.Configurable {
             I18nUtil.updateLocale();
         }
         state.patchAssistant2JPath = settingComponent.getPatchAssistant2JPath();
-        state.readmeNameTemplate = settingComponent.getReadmeNameTemplate();
+        state.patchNameTemplate = settingComponent.getPatchNameTemplate();
+        state.readmeFileName = settingComponent.getReadmeFileName();
         state.readmeContentTemplate = settingComponent.getReadmeContentTemplate();
     }
 
@@ -56,7 +58,8 @@ public class Configurable implements com.intellij.openapi.options.Configurable {
         Setting.State state = Setting.getInstance().getState();
         settingComponent.setLanguage(LanguageEnum.ofCode(state.language));
         settingComponent.setPatchAssistant2JPath(state.patchAssistant2JPath);
-        settingComponent.setReadmeNameTemplate(state.readmeNameTemplate);
+        settingComponent.setPatchNameTemplate(state.patchNameTemplate);
+        settingComponent.setReadmeFileName(state.readmeFileName);
         settingComponent.setReadmeContentTemplate(state.readmeContentTemplate);
     }
 

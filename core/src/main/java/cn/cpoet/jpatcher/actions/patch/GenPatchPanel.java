@@ -126,7 +126,6 @@ public class GenPatchPanel extends JBSplitter {
                     FileUtil.openFolder(patchPath);
                 }
             }
-            state.lastFileNamePrefix = confPanel.getFileNamePrefix();
             state.lastFileName = confPanel.getFileName();
             indicator.setFraction(0.98);
             doOpenReplacePatch(path);
@@ -219,7 +218,7 @@ public class GenPatchPanel extends JBSplitter {
     }
 
     protected void doWriteReadmeFileToFile(GenPatchBean patch, String path) {
-        String filePath = FilenameUtils.concat(path, "README.txt");
+        String filePath = FilenameUtils.concat(path, getReadmeFileName());
         FileUtil.writeToFile(patch.getDesc().toString().getBytes(), filePath);
     }
 
@@ -268,7 +267,7 @@ public class GenPatchPanel extends JBSplitter {
     }
 
     protected void doWriteReadmeFileToZip(ZipOutputStream zipOutputStream, GenPatchBean patch) {
-        ZipEntry zipEntry = new ZipEntry(GenPatchConst.PATCH_DESC_FILE_NAME);
+        ZipEntry zipEntry = new ZipEntry(getReadmeFileName());
         zipEntry.setComment(GenPatchConst.PATCH_DESC_FILE_COMMENT);
         ZipUtil.writeEntry(zipOutputStream, zipEntry, patch.getDesc().toString().getBytes());
     }
@@ -390,12 +389,6 @@ public class GenPatchPanel extends JBSplitter {
 
     protected GenPatchBean doGetGenPatch(TreeNodeInfo[] treeNodeInfos) {
         GenPatchBean patch = createGenPatch();
-        patch.getDesc().append("File Name: ").append(patch.getFileName());
-        String patchDesc = getPatchDesc();
-        if (StringUtils.isNotBlank(patchDesc)) {
-            patch.getDesc().append('\n').append("Patch Desc:\n").append(patchDesc);
-        }
-        patch.getDesc().append("\n\n").append("File Paths:");
         Map<GenPatchModuleBean, List<TreeNodeInfo>> moduleFilesMapping = getModuleFilesMapping(patch, treeNodeInfos);
         for (Map.Entry<GenPatchModuleBean, List<TreeNodeInfo>> entry : moduleFilesMapping.entrySet()) {
             for (TreeNodeInfo nodeInfo : entry.getValue()) {
@@ -404,6 +397,16 @@ public class GenPatchPanel extends JBSplitter {
                     return patch;
                 }
             }
+        }
+        String readmeContentTemplate = Setting.getInstance().getState().readmeContentTemplate;
+        if (StringUtils.isNotBlank(readmeContentTemplate)) {
+            Map<String, Object> pathcPropeties = new HashMap<>();
+            pathcPropeties.put("PATCH_NAME", patch.getFileName());
+            pathcPropeties.put("PATCH_DESC", getPatchDesc());
+            pathcPropeties.put("PATCH_FILE_PATHS", patch.getDesc());
+            patch.setDesc(new StringBuilder(VelocityUtil.render(readmeContentTemplate, project, pathcPropeties)));
+        } else {
+            patch.setDesc(new StringBuilder(readmeContentTemplate));
         }
         return patch;
     }
@@ -435,7 +438,9 @@ public class GenPatchPanel extends JBSplitter {
     }
 
     private void addPatchReplacePathInfo(GenPatchBean patch, GenPatchItemBean patchItem) {
-        patch.getDesc().append("\n");
+        if (!patch.getDesc().isEmpty()) {
+            patch.getDesc().append("\n");
+        }
         GenPatchModuleBean patchModule = patchItem.getPatchModule();
         if (setting.getState().addModLabel) {
             patch.getDesc().append(GenPatchConst.CHANGE_TYPE_MOD);
@@ -564,5 +569,10 @@ public class GenPatchPanel extends JBSplitter {
             }
             return true;
         });
+    }
+
+    private String getReadmeFileName() {
+        String readmeFileName = Setting.getInstance().getState().readmeFileName;
+        return StringUtils.isNotBlank(readmeFileName) ? readmeFileName : GenPatchConst.PATCH_DESC_FILE_NAME;
     }
 }

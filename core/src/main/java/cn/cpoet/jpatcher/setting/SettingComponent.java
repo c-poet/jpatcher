@@ -7,12 +7,14 @@ import cn.cpoet.jpatcher.constant.LanguageEnum;
 import cn.cpoet.jpatcher.util.I18nUtil;
 import com.intellij.openapi.ui.ComboBox;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
-import com.intellij.ui.EditorTextField;
+import com.intellij.ui.components.JBScrollPane;
 import com.intellij.ui.components.JBTabbedPane;
+import com.intellij.ui.components.JBTextArea;
 import com.intellij.ui.components.JBTextField;
 import com.intellij.util.ui.FormBuilder;
 
 import javax.swing.*;
+import java.awt.*;
 
 /**
  * 插件配置组件
@@ -22,48 +24,61 @@ import javax.swing.*;
 public class SettingComponent {
 
     private final JComponent mainPanel;
-
-    private final JBTextField readmeNameTemplateField;
-    private final EditorTextField readmeContentTemplateEditor;
-    private final ComboBox<LanguageEnum> selectLanguageComboBox;
-    private final TextFieldWithBrowseButton patchAssistant2JTextFieldWithBtn;
+    private JBTextField readmeFileNameField;
+    private JBTextField patchNameTemplateField;
+    private JBTextArea readmeContentTemplateArea;
+    private ComboBox<LanguageEnum> selectLanguageComboBox;
+    private TextFieldWithBrowseButton patchAssistant2JTextFieldWithBtn;
 
     public SettingComponent() {
+        JBTabbedPane tabbedPane = new JBTabbedPane();
+        tabbedPane.addTab(I18nUtil.t("settings.tab.general"), createGeneralCompoenent());
+        tabbedPane.addTab(I18nUtil.t("settings.tab.patch"), createPathcComponent());
+        mainPanel = tabbedPane;
+    }
+
+    private Component createGeneralCompoenent() {
         selectLanguageComboBox = buildSelectLanguageComboBox();
-        JPanel generalPanel = FormBuilder.createFormBuilder()
+        return FormBuilder.createFormBuilder()
                 .addLabeledComponent(I18nUtil.t("settings.SelectLanguage.label"), selectLanguageComboBox)
                 .addComponentFillVertically(new JPanel(), 0)
                 .getPanel();
+    }
 
-        readmeNameTemplateField = new JBTextField();
-        readmeContentTemplateEditor = new EditorTextField();
-        readmeContentTemplateEditor.setOneLineMode(false);
-        patchAssistant2JTextFieldWithBtn = new TextFieldWithBrowseButton();
-        cpbPatchAssistant2JTextFieldWithBtn(patchAssistant2JTextFieldWithBtn);
+    private Component createPathcComponent() {
+        readmeFileNameField = new JBTextField();
+        patchNameTemplateField = new JBTextField();
+        readmeContentTemplateArea = new JBTextArea();
+        readmeContentTemplateArea.setRows(8);
+        JBScrollPane readmeContentTemplatePane = new JBScrollPane(readmeContentTemplateArea);
+        readmeContentTemplatePane.setPreferredSize(readmeContentTemplateArea.getPreferredSize());
+        readmeContentTemplatePane.setVerticalScrollBarPolicy(JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 
         JPanel readmeFormPanel = FormBuilder.createFormBuilder()
                 .setFormLeftIndent(20)
-                .addLabeledComponent("名称模板", readmeNameTemplateField)
-                .addLabeledComponent("内容模板", readmeContentTemplateEditor)
+                .addLabeledComponent(I18nUtil.t("settings.patch.readme.fileName"), readmeFileNameField)
+                .addLabeledComponent(I18nUtil.t("settings.patch.readme.contentTemplate"), readmeContentTemplatePane, true)
                 .getPanel();
-        TitledPanel readmePanel = new TitledPanel("说明文件");
+        TitledPanel readmePanel = new TitledPanel(I18nUtil.t("settings.patch.readme.label"));
         readmePanel.add(readmeFormPanel);
+
+        patchAssistant2JTextFieldWithBtn = new TextFieldWithBrowseButton();
+        cpbPatchAssistant2JTextFieldWithBtn(patchAssistant2JTextFieldWithBtn);
         JPanel extFormPanel = FormBuilder.createFormBuilder()
                 .setFormLeftIndent(20)
                 .addLabeledComponent(I18nUtil.t("settings.PatchAssistant2J.label"), patchAssistant2JTextFieldWithBtn)
                 .getPanel();
-        JPanel extPanel = new TitledPanel("扩展配置");
+        JPanel extPanel = new TitledPanel(I18nUtil.t("settings.patch.extConfig.label"));
         extPanel.add(extFormPanel);
-        JPanel patchPanel = FormBuilder.createFormBuilder()
+
+        return FormBuilder.createFormBuilder()
+                .setFormLeftIndent(20)
+                .addLabeledComponent(I18nUtil.t("settings.patch.nameTemplate"), patchNameTemplateField)
+                .setFormLeftIndent(0)
                 .addComponent(readmePanel)
                 .addComponent(extPanel)
                 .addComponentFillVertically(new JPanel(), 0)
                 .getPanel();
-
-        JBTabbedPane tabbedPane = new JBTabbedPane();
-        tabbedPane.addTab("常规配置", generalPanel);
-        tabbedPane.addTab("补丁配置", patchPanel);
-        mainPanel = tabbedPane;
     }
 
     protected void cpbPatchAssistant2JTextFieldWithBtn(TextFieldWithBrowseButton btn) {
@@ -101,19 +116,27 @@ public class SettingComponent {
         patchAssistant2JTextFieldWithBtn.setText(patchAssistant2JPath);
     }
 
-    public String getReadmeNameTemplate() {
-        return readmeNameTemplateField.getText();
+    public String getPatchNameTemplate() {
+        return patchNameTemplateField.getText();
     }
 
-    public void setReadmeNameTemplate(String readmeNameTemplate) {
-        readmeNameTemplateField.setText(readmeNameTemplate);
+    public void setPatchNameTemplate(String patchNameTemplate) {
+        patchNameTemplateField.setText(patchNameTemplate);
+    }
+
+    public String getReadmeFileName() {
+        return readmeFileNameField.getText();
+    }
+
+    public void setReadmeFileName(String readmeNameTemplate) {
+        readmeFileNameField.setText(readmeNameTemplate);
     }
 
     public String getReadmeContentTemplate() {
-        return readmeContentTemplateEditor.getText();
+        return readmeContentTemplateArea.getText();
     }
 
     public void setReadmeContentTemplate(String readmeContentTemplate) {
-        readmeContentTemplateEditor.setText(readmeContentTemplate);
+        readmeContentTemplateArea.setText(readmeContentTemplate);
     }
 }

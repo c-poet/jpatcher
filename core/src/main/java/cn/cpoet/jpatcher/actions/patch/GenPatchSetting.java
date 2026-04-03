@@ -34,11 +34,6 @@ public final class GenPatchSetting implements PersistentStateComponent<GenPatchS
          */
         public String lastFileName;
 
-        /**
-         * 最后一次生成的文件名前缀
-         */
-        public String lastFileNamePrefix;
-
         /** 文件树过滤类型 */
         public String treeFilterType = GenPatchTreeFilterTypeEnum.PROJECT.getCode();
 

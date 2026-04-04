@@ -2,6 +2,8 @@ package cn.cpoet.jpatcher.actions.patch;
 
 import cn.cpoet.jpatcher.util.I18nUtil;
 import com.intellij.ide.projectView.ProjectViewNode;
+import com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode;
+import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
@@ -9,8 +11,10 @@ import com.intellij.openapi.fileEditor.FileEditorNavigatable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogBuilder;
 import com.intellij.pom.Navigatable;
+import org.apache.commons.collections.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -47,6 +51,11 @@ public class GenPatchPackageAction extends AnAction {
         for (Navigatable navigatable : navigatables) {
             if (navigatable instanceof FileEditorNavigatable) {
                 selectedItems.add(((FileEditorNavigatable) navigatable).getFile());
+            } else if (navigatable instanceof NamedLibraryElementNode node) {
+                Collection<AbstractTreeNode<?>> children = node.getChildren();
+                if (CollectionUtils.isNotEmpty(children)) {
+                    children.forEach(child -> selectedItems.add(((ProjectViewNode<?>) child).getVirtualFile()));
+                }
             } else if (navigatable instanceof ProjectViewNode) {
                 selectedItems.add(((ProjectViewNode<?>) navigatable).getVirtualFile());
             }

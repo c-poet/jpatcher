@@ -42,23 +42,10 @@ public class GenPatchTreePanel extends JBSplitter {
     private final GenPatchTree tree;
     private EditorTextField patchDescEditor;
 
-    public GenPatchTreePanel(Project project, Object[] selectedItems) {
+    public GenPatchTreePanel(Project project, Set<String> selectedItems) {
         super(true);
         this.project = project;
-        Set<VirtualFile> selectedFiles = Collections.emptySet();
-        if (selectedItems != null && selectedItems.length > 0) {
-            selectedFiles = new HashSet<>(selectedItems.length);
-            for (Object selectedItem : selectedItems) {
-                if (selectedItem instanceof ProjectViewNode) {
-                    selectedFiles.add(((ProjectViewNode<?>) selectedItem).getVirtualFile());
-                } else if (selectedItem instanceof VirtualFile) {
-                    selectedFiles.add((VirtualFile) selectedItem);
-                } else if (selectedItem instanceof PsiElement) {
-                    selectedFiles.add(PsiUtil.getVirtualFile((PsiElement) selectedItem));
-                }
-            }
-        }
-        tree = new GenPatchTree(project, selectedFiles);
+        tree = new GenPatchTree(project, selectedItems);
         GenPatchSetting setting = GenPatchSetting.getInstance(project);
         buildTreePanel(setting);
         buildDescriptionPanel();

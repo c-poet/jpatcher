@@ -3,19 +3,18 @@ package cn.cpoet.jpatcher.actions.patch;
 import cn.cpoet.jpatcher.util.I18nUtil;
 import com.intellij.ide.projectView.ProjectViewNode;
 import com.intellij.ide.projectView.impl.nodes.NamedLibraryElementNode;
-import com.intellij.ide.util.treeView.AbstractTreeNode;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.fileEditor.FileEditorNavigatable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogBuilder;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
-import org.apache.commons.collections.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 生成补丁包（适用于增量发包的情况）
@@ -31,7 +30,7 @@ public class GenPatchPackageAction extends AnAction {
     @Override
     public void actionPerformed(AnActionEvent e) {
         Project project = e.getData(CommonDataKeys.PROJECT);
-        Object[] selectedItems = getSelectedItems(e);
+        Set<String> selectedItems = getSelectedItems(e);
         DialogBuilder dialogBuilder = new DialogBuilder(project);
         dialogBuilder.setTitle(I18nUtil.t("actions.patch.GenPatchPackageAction.title"));
         GenPatchPanel packagePanel = new GenPatchPanel(project, selectedItems, dialogBuilder.getDialogWrapper());
@@ -42,24 +41,29 @@ public class GenPatchPackageAction extends AnAction {
         dialogBuilder.showNotModal();
     }
 
-    private Object[] getSelectedItems(AnActionEvent e) {
+    private Set<String> getSelectedItems(AnActionEvent e) {
         Navigatable[] navigatables = e.getData(CommonDataKeys.NAVIGATABLE_ARRAY);
         if (navigatables == null || navigatables.length == 0) {
-            return null;
+            return Collections.emptySet();
         }
-        List<Object> selectedItems = new ArrayList<>(navigatables.length);
+        Set<String> selectedItems = new HashSet<>(navigatables.length);
         for (Navigatable navigatable : navigatables) {
             if (navigatable instanceof FileEditorNavigatable) {
-                selectedItems.add(((FileEditorNavigatable) navigatable).getFile());
+                selectedItems.add(((FileEditorNavigatable) navigatable).getFile().getPath());
             } else if (navigatable instanceof NamedLibraryElementNode node) {
-                Collection<AbstractTreeNode<?>> children = node.getChildren();
-                if (CollectionUtils.isNotEmpty(children)) {
-                    children.forEach(child -> selectedItems.add(((ProjectViewNode<?>) child).getVirtualFile()));
-                }
+                node.getChildren().forEach(child -> {
+                    VirtualFile file = ((ProjectViewNode<?>) child).getVirtualFile();
+                    if (file != null) {
+                        selectedItems.add(file.getPath());
+                    }
+                });
             } else if (navigatable instanceof ProjectViewNode) {
-                selectedItems.add(((ProjectViewNode<?>) navigatable).getVirtualFile());
+                VirtualFile file = ((ProjectViewNode<?>) navigatable).getVirtualFile();
+                if (file != null) {
+                    selectedItems.add(file.getPath());
+                }
             }
         }
-        return selectedItems.toArray(new Object[0]);
+        return selectedItems;
     }
 }

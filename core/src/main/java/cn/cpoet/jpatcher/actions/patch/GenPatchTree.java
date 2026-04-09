@@ -22,10 +22,10 @@ import java.util.Set;
  */
 public class GenPatchTree extends FilterCheckboxTree {
 
-    public GenPatchTree(Project project, Set<VirtualFile> selectedFiles) {
+    public GenPatchTree(Project project, Set<String> selectedItems) {
         super(new GenPatchPackageTreeCellRenderer(), TreeUtil.buildWithProject(project, (obj) -> {
             FilterCheckedTreeNode checkedTreeNode = new FilterCheckedTreeNode();
-            checkedTreeNode.setChecked(obj instanceof VirtualFile && selectedFiles.contains((VirtualFile) obj));
+            checkedTreeNode.setChecked(obj instanceof VirtualFile && selectedItems.contains(((VirtualFile) obj).getPath()));
             return checkedTreeNode;
         }));
     }

@@ -58,7 +58,7 @@ public class GenPatchPanel extends JBSplitter {
     private final GenPatchConfPanel confPanel;
     private final GenPatchTreePanel treePanel;
 
-    public GenPatchPanel(Project project, Object[] selectedItems, DialogWrapper dialogWrapper) {
+    public GenPatchPanel(Project project, Set<String> selectedItems, DialogWrapper dialogWrapper) {
         this.project = project;
         this.dialogWrapper = dialogWrapper;
         this.setting = GenPatchSetting.getInstance(project);
@@ -82,7 +82,12 @@ public class GenPatchPanel extends JBSplitter {
         treePanel.getTree().addCheckboxTreeListener(new CheckboxTreeListener() {
             @Override
             public void nodeStateChanged(@NotNull CheckedTreeNode node) {
-                checkedCount.getAndAdd(node.isChecked() ? 1 : -1);
+                checkedCount.updateAndGet(val -> {
+                    if (node.isChecked()) {
+                        return ++val;
+                    }
+                    return val <= 0 ? 0 : --val;
+                });
                 updateBtnStatus();
             }
         });

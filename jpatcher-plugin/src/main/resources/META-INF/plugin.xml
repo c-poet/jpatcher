@@ -13,6 +13,8 @@
                 <li>Quickly generate an incremental patch package in ZIP format from selected files ⚡</li>
                 <li>Automatically generate a path description file 📝</li>
                 <li>Support for MapStruct generated files ♻️</li>
+                <li>Generate patch panel to support selecting dependent JAR packages 📦</li>
+                <li>Custom patch instruction file template ✏️</li>
             </ul>
         </div>
         <p><b>JPatcher</b>是一款专为IntelliJ IDEA开发的<b>增量补丁包</b>快速生成插件</p>
@@ -25,6 +27,8 @@
                 <li>选择文件快速生成 ZIP 格式的增量补丁包 ⚡</li>
                 <li>自动生成路径说明文件 📝</li>
                 <li>支持MapStruct生成文件 ♻️</li>
+                <li>生成补丁面板支持选择依赖的JAR包 📦</li>
+                <li>自定义补丁说明文件模板 ✏️</li>
             </ul>
         </div>
         <p><a href="https://github.com/c-poet/jpatcher">源代码</a>&nbsp;&nbsp;<a href="https://www.cpoet.cn">建议与反馈</a>&nbsp;&nbsp;<a href="https://github.com/c-poet/cpoet-idea-tool">CPoet Tool</a><p>

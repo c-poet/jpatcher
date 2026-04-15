@@ -9,12 +9,13 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.fileEditor.FileEditorNavigatable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogBuilder;
+import com.intellij.openapi.vcs.VcsDataKeys;
+import com.intellij.openapi.vcs.changes.Change;
+import com.intellij.openapi.vcs.changes.ContentRevision;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 生成补丁包（适用于增量发包的情况）
@@ -31,9 +32,11 @@ public class GenPatchPackageAction extends AnAction {
     public void actionPerformed(AnActionEvent e) {
         Project project = e.getData(CommonDataKeys.PROJECT);
         Set<String> selectedItems = getSelectedItems(e);
+        Map<String, String> itemChangeTypes = getItemChangeTypes(e);
+        System.out.println(itemChangeTypes);
         DialogBuilder dialogBuilder = new DialogBuilder(project);
         dialogBuilder.setTitle(I18nUtil.t("actions.patch.GenPatchPackageAction.title"));
-        GenPatchPanel packagePanel = new GenPatchPanel(project, selectedItems, dialogBuilder.getDialogWrapper());
+        GenPatchPanel packagePanel = new GenPatchPanel(project, selectedItems, itemChangeTypes, dialogBuilder.getDialogWrapper());
         dialogBuilder.setCenterPanel(packagePanel);
         dialogBuilder.addOkAction().setText(I18nUtil.t("actions.patch.GenPatchPackageAction.generate"));
         dialogBuilder.setOkOperation(packagePanel::generate);
@@ -65,5 +68,34 @@ public class GenPatchPackageAction extends AnAction {
             }
         }
         return selectedItems;
+    }
+
+    private Map<String, String> getItemChangeTypes(AnActionEvent e) {
+        Change[] selectedChanges = e.getData(VcsDataKeys.SELECTED_CHANGES);
+        if (selectedChanges == null || selectedChanges.length == 0) {
+            return Map.of();
+        }
+        Map<String, String> changeTypes = new HashMap<>(selectedChanges.length);
+        for (Change selectedChange : selectedChanges) {
+            String changeType = switch (selectedChange.getType()) {
+                case NEW -> GenPatchConst.CHANGE_TYPE_ADD;
+                case MODIFICATION -> GenPatchConst.CHANGE_TYPE_MOD;
+                case DELETED -> GenPatchConst.CHANGE_TYPE_DEL;
+                default -> null;
+            };
+            if (changeType == null) {
+                continue;
+            }
+            ContentRevision revision;
+            if (GenPatchConst.CHANGE_TYPE_DEL.equals(changeType)) {
+                revision = selectedChange.getBeforeRevision();
+            } else {
+                revision = selectedChange.getAfterRevision();
+            }
+            if (revision != null) {
+                changeTypes.put(revision.getFile().getPath(), changeType);
+            }
+        }
+        return changeTypes;
     }
 }

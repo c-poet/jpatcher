@@ -57,11 +57,13 @@ public class GenPatchPanel extends JBSplitter {
     private final AtomicInteger checkedCount;
     private final GenPatchConfPanel confPanel;
     private final GenPatchTreePanel treePanel;
+    private final Map<String, String> itemChangeTypes;
 
-    public GenPatchPanel(Project project, Set<String> selectedItems, DialogWrapper dialogWrapper) {
+    public GenPatchPanel(Project project, Set<String> selectedItems, Map<String, String> itemChangeTypes, DialogWrapper dialogWrapper) {
         this.project = project;
         this.dialogWrapper = dialogWrapper;
         this.setting = GenPatchSetting.getInstance(project);
+        this.itemChangeTypes = itemChangeTypes;
         setPreferredSize(new JBDimension(setting.getState().width, setting.getState().height));
         addComponentListener(new ComponentAdapter() {
             @Override

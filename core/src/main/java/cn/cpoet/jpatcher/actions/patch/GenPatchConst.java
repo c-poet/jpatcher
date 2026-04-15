@@ -22,4 +22,10 @@ public interface GenPatchConst {
 
     /** PatchAssistant Modify Change Type */
     String CHANGE_TYPE_MOD = "!";
+
+    /** 添加文件 */
+    String CHANGE_TYPE_ADD = "+";
+
+    /** 删除文件 */
+    String CHANGE_TYPE_DEL = "-";
 }

@@ -34,6 +34,9 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.*;
+import javax.swing.text.TextAction;
+import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.io.File;
@@ -54,6 +57,7 @@ public class GenPatchPanel extends JBSplitter {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(GenPatchPanel.class);
 
+    private Action previewAction;
     private final Project project;
     private final boolean hasDelChange;
     private final GenPatchSetting setting;
@@ -104,6 +108,23 @@ public class GenPatchPanel extends JBSplitter {
         updateBtnStatus();
     }
 
+    public Action getPreviewReadmeAction() {
+        if (previewAction == null) {
+            previewAction = new TextAction(I18nUtil.t("actions.patch.GenPatchPackageAction.preview-readme")) {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    previewReadme();
+                }
+            };
+            previewAction.setEnabled(dialogWrapper.isOKActionEnabled());
+        }
+        return previewAction;
+    }
+
+    private void previewReadme() {
+        // TODO BY CPoet 预览说明文件
+    }
+
     public void generate() {
         UITaskUtil.runProgress(project, "Generating", this::generate);
     }
@@ -111,11 +132,11 @@ public class GenPatchPanel extends JBSplitter {
     private void generate(ProgressIndicator indicator) {
         try {
             GenPatchSetting.State state = setting.getState();
-            indicator.setFraction(0.1);
+            indicator.setFraction(0.05);
             if (!buildGenPatchBefore(indicator)) {
                 return;
             }
-            indicator.setFraction(0.3);
+            indicator.setFraction(0.25);
             indicator.setText("Wait index refresh");
             // 等待文件索引完成（特别是重新编译的情况下）
             if (DumbService.isDumb(project)) {
@@ -126,13 +147,13 @@ public class GenPatchPanel extends JBSplitter {
             if (patch.isFailed()) {
                 return;
             }
-            indicator.setFraction(0.5);
+            indicator.setFraction(0.45);
             String path = doGenerate(patch, indicator);
             if (StringUtils.isBlank(path)) {
                 return;
             }
             indicator.setText("Generate after");
-            indicator.setFraction(0.8);
+            indicator.setFraction(0.85);
             if (state.openOutputFolder) {
                 String patchPath = FilenameUtils.separatorsToSystem(path);
                 if (state.compress) {
@@ -142,7 +163,7 @@ public class GenPatchPanel extends JBSplitter {
                 }
             }
             state.lastFileName = confPanel.getFileName();
-            indicator.setFraction(0.98);
+            indicator.setFraction(0.95);
             doOpenReplacePatch(path);
             indicator.setFraction(1);
         } catch (Exception e) {
@@ -171,6 +192,9 @@ public class GenPatchPanel extends JBSplitter {
         GenPatchSetting.State state = setting.getState();
         dialogWrapper.setOKActionEnabled((checkedCount.get() > 0 || state.addModLabel && hasDelChange)
                 && StringUtils.isNotBlank(state.outputFolder) && StringUtils.isNotBlank(confPanel.getFileName()));
+        if (previewAction != null) {
+            previewAction.setEnabled(dialogWrapper.isOKActionEnabled());
+        }
     }
 
 

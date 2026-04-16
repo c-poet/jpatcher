@@ -15,6 +15,8 @@ import com.intellij.openapi.vcs.changes.ContentRevision;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.pom.Navigatable;
 
+import javax.swing.text.TextAction;
+import java.awt.event.ActionEvent;
 import java.util.*;
 
 /**
@@ -39,6 +41,7 @@ public class GenPatchPackageAction extends AnAction {
         dialogBuilder.setCenterPanel(packagePanel);
         dialogBuilder.addOkAction().setText(I18nUtil.t("actions.patch.GenPatchPackageAction.generate"));
         dialogBuilder.setOkOperation(packagePanel::generate);
+        dialogBuilder.addAction(packagePanel.getPreviewReadmeAction());
         dialogBuilder.addCancelAction().setText(I18nUtil.t("actions.patch.GenPatchPackageAction.cancel"));
         dialogBuilder.showNotModal();
     }

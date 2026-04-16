@@ -9,9 +9,11 @@ import cn.cpoet.jpatcher.setting.Setting;
 import cn.cpoet.jpatcher.util.*;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -24,6 +26,7 @@ import com.intellij.ui.CheckedTreeNode;
 import com.intellij.ui.JBSplitter;
 import com.intellij.util.ui.JBDimension;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -52,18 +55,23 @@ public class GenPatchPanel extends JBSplitter {
     private final static Logger LOGGER = LoggerFactory.getLogger(GenPatchPanel.class);
 
     private final Project project;
+    private final boolean hasDelChange;
     private final GenPatchSetting setting;
     private final DialogWrapper dialogWrapper;
     private final AtomicInteger checkedCount;
     private final GenPatchConfPanel confPanel;
     private final GenPatchTreePanel treePanel;
-    private final Map<String, String> itemChangeTypes;
+    private final Map<String, String> changeTypeMap;
 
-    public GenPatchPanel(Project project, Set<String> selectedItems, Map<String, String> itemChangeTypes, DialogWrapper dialogWrapper) {
+    public GenPatchPanel(Project project,
+                         Set<String> selectedItems,
+                         Map<String, String> changeTypeMap,
+                         DialogWrapper dialogWrapper) {
         this.project = project;
         this.dialogWrapper = dialogWrapper;
         this.setting = GenPatchSetting.getInstance(project);
-        this.itemChangeTypes = itemChangeTypes;
+        this.changeTypeMap = changeTypeMap;
+        hasDelChange = MapUtils.isNotEmpty(changeTypeMap) && changeTypeMap.containsValue(GenPatchConst.CHANGE_TYPE_DEL);
         setPreferredSize(new JBDimension(setting.getState().width, setting.getState().height));
         addComponentListener(new ComponentAdapter() {
             @Override
@@ -161,9 +169,8 @@ public class GenPatchPanel extends JBSplitter {
 
     protected void updateBtnStatus() {
         GenPatchSetting.State state = setting.getState();
-        dialogWrapper.setOKActionEnabled(checkedCount.get() > 0
-                && StringUtils.isNotBlank(state.outputFolder)
-                && StringUtils.isNotBlank(confPanel.getFileName()));
+        dialogWrapper.setOKActionEnabled((checkedCount.get() > 0 || state.addModLabel && hasDelChange)
+                && StringUtils.isNotBlank(state.outputFolder) && StringUtils.isNotBlank(confPanel.getFileName()));
     }
 
 
@@ -337,8 +344,7 @@ public class GenPatchPanel extends JBSplitter {
             default -> true;
         };
         if (!isOk) {
-            UITaskUtil.runUI(() -> Messages.showWarningDialog(project, I18nUtil.t("actions.patch.GenPatchPackageAction.buildFailedWarnMsg"),
-                    I18nUtil.t("message.warn.title")));
+            UITaskUtil.runUI(() -> Messages.showWarningDialog(project, I18nUtil.t("actions.patch.GenPatchPackageAction.buildFailedWarnMsg"), I18nUtil.t("message.warn.title")));
         }
         return isOk;
     }
@@ -405,6 +411,9 @@ public class GenPatchPanel extends JBSplitter {
                 }
             }
         }
+        if (setting.getState().addModLabel && hasDelChange) {
+            appendPatchDelPath(patch);
+        }
         String readmeContentTemplate = Setting.getInstance().getState().readmeContentTemplate;
         if (StringUtils.isNotBlank(readmeContentTemplate)) {
             Map<String, Object> pathcPropeties = new HashMap<>();
@@ -418,6 +427,46 @@ public class GenPatchPanel extends JBSplitter {
         return patch;
     }
 
+    private void appendPatchDelPath(GenPatchBean patch) {
+        List<GenPatchModuleBean> moduleBeans = new ArrayList<>();
+        for (Map.Entry<String, String> entry : changeTypeMap.entrySet()) {
+            if (GenPatchConst.CHANGE_TYPE_DEL.equals(entry.getValue())) {
+                appendPatchDelPath(patch, entry.getKey(), moduleBeans);
+            }
+        }
+    }
+
+    private void appendPatchDelPath(GenPatchBean patch, String filePath, List<GenPatchModuleBean> moduleBeans) {
+        if (moduleBeans.isEmpty()) {
+            Module[] modules = ModuleManager.getInstance(project).getModules();
+            for (Module module : modules) {
+                moduleBeans.add(createGenPatchModule(module, patch));
+            }
+        }
+        for (GenPatchModuleBean moduleBean : moduleBeans) {
+            if (appendPatchDelPath(patch, filePath, moduleBean)) {
+                return;
+            }
+        }
+    }
+
+    private boolean appendPatchDelPath(GenPatchBean patch, String filePath, GenPatchModuleBean moduleBean) {
+        ModuleRootManager moduleRootManager = ModuleRootManager.getInstance(moduleBean.getModule());
+        VirtualFile[] sourceRoots = moduleRootManager.getSourceRoots();
+        for (VirtualFile sourceRoot : sourceRoots) {
+            if (filePath.startsWith(sourceRoot.getPath())) {
+                if (!patch.getDesc().isEmpty()) {
+                    patch.getDesc().append("\n");
+                }
+                patch.getDesc().append(GenPatchConst.CHANGE_TYPE_DEL);
+                appendSpringPathPrefix(patch, moduleBean);
+                patch.getDesc().append(FileUtil.getOutputFilePath(sourceRoot, filePath).substring(1));
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void addPatchItem(GenPatchBean patch, GenPatchModuleBean patchModule, VirtualFile file) {
         addPatchItem(patch, patchModule, file, true);
     }
@@ -426,8 +475,7 @@ public class GenPatchPanel extends JBSplitter {
         FileInfo fileInfo = patchModule.getModule() == null ? FileUtil.getFileInfo(sourceFile) : FileUtil.getFileInfo(patchModule.getModule(), sourceFile);
         if (fileInfo.getOutputFile() == null) {
             patch.setFailed(true);
-            UITaskUtil.runUI(() -> Messages.showWarningDialog(project, I18nUtil.tr("actions.patch.GenPatchPackageAction.notFoundOutputFile", sourceFile.getName())
-                    , I18nUtil.t("message.warn.title")));
+            UITaskUtil.runUI(() -> Messages.showWarningDialog(project, I18nUtil.tr("actions.patch.GenPatchPackageAction.notFoundOutputFile", sourceFile.getName()), I18nUtil.t("message.warn.title")));
             return;
         }
         GenPatchItemBean patchItem = new GenPatchItemBean();
@@ -436,7 +484,7 @@ public class GenPatchPanel extends JBSplitter {
         patchItem.setOutputFile(fileInfo.getOutputFile());
         String relativePath = FileUtil.removeStartSeparator(fileInfo.getOutputRelativePath());
         patchItem.setFullPath(FilenameUtils.getFullPathNoEndSeparator(relativePath));
-        addPatchReplacePathInfo(patch, patchItem);
+        appendPatchModPath(patch, patchItem);
         addInner2AttachOutFiles(patchItem);
         patch.getItems().add(patchItem);
         if (isMapStruct) {
@@ -444,17 +492,26 @@ public class GenPatchPanel extends JBSplitter {
         }
     }
 
-    private void addPatchReplacePathInfo(GenPatchBean patch, GenPatchItemBean patchItem) {
+    private void appendPatchModPath(GenPatchBean patch, GenPatchItemBean patchItem) {
         if (!patch.getDesc().isEmpty()) {
             patch.getDesc().append("\n");
         }
         GenPatchModuleBean patchModule = patchItem.getPatchModule();
         if (setting.getState().addModLabel) {
-            patch.getDesc().append(GenPatchConst.CHANGE_TYPE_MOD);
+            patch.getDesc().append(changeTypeMap.getOrDefault(patchItem.getSourceFile().getPath(), GenPatchConst.CHANGE_TYPE_MOD));
         }
         if (!setting.getState().includePath) {
             patch.getDesc().append(patchItem.getOutputFile().getName()).append("\t");
         }
+        appendSpringPathPrefix(patch, patchModule);
+        if (StringUtils.isBlank(patchItem.getFullPath())) {
+            patch.getDesc().append(patchItem.getOutputFile().getName());
+        } else {
+            patch.getDesc().append(patchItem.getFullPath()).append(FileUtil.UNIX_SEPARATOR).append(patchItem.getOutputFile().getName());
+        }
+    }
+
+    private void appendSpringPathPrefix(GenPatchBean patch, GenPatchModuleBean patchModule) {
         if (GenPatchProjectTypeEnum.SPRING.equals(patch.getProjectType())) {
             if (patchModule.isApp()) {
                 patch.getDesc().append(SpringUtil.SB_CLASSES_PATH).append(FileUtil.UNIX_SEPARATOR);
@@ -462,14 +519,8 @@ public class GenPatchPanel extends JBSplitter {
                 // 依赖的外部文件没有所属的项目模块
                 patch.getDesc().append(SpringUtil.SB_LIB_PATH).append(FileUtil.UNIX_SEPARATOR);
             } else {
-                patch.getDesc().append(SpringUtil.SB_LIB_PATH).append(FileUtil.UNIX_SEPARATOR)
-                        .append(patchModule.getModule().getName()).append(FileUtil.UNIX_SEPARATOR);
+                patch.getDesc().append(SpringUtil.SB_LIB_PATH).append(FileUtil.UNIX_SEPARATOR).append(patchModule.getModule().getName()).append(FileUtil.UNIX_SEPARATOR);
             }
-        }
-        if (StringUtils.isBlank(patchItem.getFullPath())) {
-            patch.getDesc().append(patchItem.getOutputFile().getName());
-        } else {
-            patch.getDesc().append(patchItem.getFullPath()).append(FileUtil.UNIX_SEPARATOR).append(patchItem.getOutputFile().getName());
         }
     }
 
@@ -514,7 +565,7 @@ public class GenPatchPanel extends JBSplitter {
             patchItem.setSourceFile(null);
             patchItem.setOutputFile(outputFile);
             patchItem.setFullPath(FilenameUtils.getFullPathNoEndSeparator(FileUtil.removeStartSeparator(filePath)));
-            addPatchReplacePathInfo(patch, patchItem);
+            appendPatchModPath(patch, patchItem);
             addInner2AttachOutFiles(patchItem);
             patch.getItems().add(patchItem);
         }

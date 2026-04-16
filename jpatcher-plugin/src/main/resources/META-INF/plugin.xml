@@ -9,12 +9,12 @@
         <div>
             <p><b>Main Features:</b></p>
             <ul>
-                <li>Select files to include in the patch from the editor window, project tree, VCS (Git/SVN) changes list, etc. 🗂️</li>
-                <li>Quickly generate an incremental patch package in ZIP format from selected files ⚡</li>
-                <li>Automatically generate a path description file 📝</li>
-                <li>Support for MapStruct generated files ♻️</li>
-                <li>Generate patch panel to support selecting dependent JAR packages 📦</li>
-                <li>Custom patch instruction file template ✏️</li>
+                <li>🗂️ Support selecting files that require patch generation from lists such as editing windows, project trees, VCS (GIT/SVN) changes, etc</li>
+                <li>⚡ Select files to quickly generate incremental patch packages in ZIP format</li>
+                <li>📝 Automatically generate path instruction files and custom patch instruction file templates</li>
+                <li>♻️ Support MapStruct generated Mapper files</li>
+                <li>📦 Generate patch panel to support selecting dependent JAR packages</li>
+                <li>🏷️ Generate change identifiers (add, mod, del) based on VCS (version management)</li>
             </ul>
         </div>
         <p><b>JPatcher</b>是一款专为IntelliJ IDEA开发的<b>增量补丁包</b>快速生成插件</p>
@@ -23,12 +23,12 @@
         <div>
             <p><b>主要功能：</b></p>
             <ul>
-                <li>支持从编辑窗口、项目树、VCS(GIT/SVN)变更等列表中选择需要生成补丁的文件🗂️</li>
-                <li>选择文件快速生成 ZIP 格式的增量补丁包 ⚡</li>
-                <li>自动生成路径说明文件 📝</li>
-                <li>支持MapStruct生成文件 ♻️</li>
-                <li>生成补丁面板支持选择依赖的JAR包 📦</li>
-                <li>自定义补丁说明文件模板 ✏️</li>
+                <li>🗂️支持从编辑窗口、项目树、VCS(GIT/SVN)变更等列表中选择需要生成补丁的文件</li>
+                <li>⚡选择文件快速生成 ZIP 格式的增量补丁包</li>
+                <li>📝自动生成路径说明文件和自定义补丁说明文件模板</li>
+                <li>♻️支持MapStruct生成的Mapper文件</li>
+                <li>📦生成补丁面板支持选择依赖的JAR包</li>
+                <li>🏷️根据VCS(版本管理)生成变化标识（新增、修改、删除）</li>
             </ul>
         </div>
         <p><a href="https://github.com/c-poet/jpatcher">源代码</a>&nbsp;&nbsp;<a href="https://www.cpoet.cn">建议与反馈</a>&nbsp;&nbsp;<a href="https://github.com/c-poet/cpoet-idea-tool">CPoet Tool</a><p>

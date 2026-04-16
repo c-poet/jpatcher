@@ -141,7 +141,18 @@ public abstract class FileUtil {
      * @return 输出路径
      */
     public static String getOutputFilePath(VirtualFile root, VirtualFile file) {
-        String filePath = getRelativePath(root.getPath(), file.getPath());
+        return getOutputFilePath(root, file.getPath());
+    }
+
+    /**
+     * 获取文件的输出路径
+     *
+     * @param root 输出根目录
+     * @param path 源文件路径
+     * @return 输出路径
+     */
+    public static String getOutputFilePath(VirtualFile root, String path) {
+        String filePath = getRelativePath(root.getPath(), path);
         return getOutputFilePath(filePath);
     }
 

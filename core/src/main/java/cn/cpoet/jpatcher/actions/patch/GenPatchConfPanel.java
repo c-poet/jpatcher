@@ -95,7 +95,10 @@ public class GenPatchConfPanel extends ScrollVPanel {
 
         // 添加修改标识符
         JBCheckBox addModCheckBox = new JBCheckBox(I18nUtil.t("actions.patch.GenPatchPackageAction.config.addModLabel"), state.addModLabel);
-        addModCheckBox.addActionListener(e -> setting.getState().addModLabel = !setting.getState().addModLabel);
+        addModCheckBox.addActionListener(e -> {
+            setting.getState().addModLabel = !setting.getState().addModLabel;
+            parent.updateBtnStatus();
+        });
         formBuilder.addComponent(addModCheckBox);
 
         TitledPanel titledPanel = new TitledPanel(I18nUtil.t("actions.patch.GenPatchPackageAction.config.generalTitle"));

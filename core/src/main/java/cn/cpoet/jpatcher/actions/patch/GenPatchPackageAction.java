@@ -32,11 +32,10 @@ public class GenPatchPackageAction extends AnAction {
     public void actionPerformed(AnActionEvent e) {
         Project project = e.getData(CommonDataKeys.PROJECT);
         Set<String> selectedItems = getSelectedItems(e);
-        Map<String, String> itemChangeTypes = getItemChangeTypes(e);
-        System.out.println(itemChangeTypes);
+        Map<String, String> itemChangeMap = getItemChangeMap(e);
         DialogBuilder dialogBuilder = new DialogBuilder(project);
         dialogBuilder.setTitle(I18nUtil.t("actions.patch.GenPatchPackageAction.title"));
-        GenPatchPanel packagePanel = new GenPatchPanel(project, selectedItems, itemChangeTypes, dialogBuilder.getDialogWrapper());
+        GenPatchPanel packagePanel = new GenPatchPanel(project, selectedItems, itemChangeMap, dialogBuilder.getDialogWrapper());
         dialogBuilder.setCenterPanel(packagePanel);
         dialogBuilder.addOkAction().setText(I18nUtil.t("actions.patch.GenPatchPackageAction.generate"));
         dialogBuilder.setOkOperation(packagePanel::generate);
@@ -70,30 +69,38 @@ public class GenPatchPackageAction extends AnAction {
         return selectedItems;
     }
 
-    private Map<String, String> getItemChangeTypes(AnActionEvent e) {
+    private Map<String, String> getItemChangeMap(AnActionEvent e) {
         Change[] selectedChanges = e.getData(VcsDataKeys.SELECTED_CHANGES);
         if (selectedChanges == null || selectedChanges.length == 0) {
             return Map.of();
         }
         Map<String, String> changeTypes = new HashMap<>(selectedChanges.length);
         for (Change selectedChange : selectedChanges) {
-            String changeType = switch (selectedChange.getType()) {
-                case NEW -> GenPatchConst.CHANGE_TYPE_ADD;
-                case MODIFICATION -> GenPatchConst.CHANGE_TYPE_MOD;
-                case DELETED -> GenPatchConst.CHANGE_TYPE_DEL;
-                default -> null;
-            };
-            if (changeType == null) {
-                continue;
-            }
-            ContentRevision revision;
-            if (GenPatchConst.CHANGE_TYPE_DEL.equals(changeType)) {
-                revision = selectedChange.getBeforeRevision();
+            Change.Type type = selectedChange.getType();
+            if (type.equals(Change.Type.DELETED)) {
+                ContentRevision beforeRevision = selectedChange.getBeforeRevision();
+                if (beforeRevision != null) {
+                    changeTypes.put(beforeRevision.getFile().getPath(), GenPatchConst.CHANGE_TYPE_DEL);
+                }
+            } else if (type.equals(Change.Type.NEW)) {
+                ContentRevision afterRevision = selectedChange.getAfterRevision();
+                if (afterRevision != null) {
+                    changeTypes.put(afterRevision.getFile().getPath(), GenPatchConst.CHANGE_TYPE_ADD);
+                }
+            } else if (type.equals(Change.Type.MOVED)) {
+                ContentRevision beforeRevision = selectedChange.getBeforeRevision();
+                if (beforeRevision != null) {
+                    changeTypes.put(beforeRevision.getFile().getPath(), GenPatchConst.CHANGE_TYPE_DEL);
+                }
+                ContentRevision afterRevision = selectedChange.getAfterRevision();
+                if (afterRevision != null) {
+                    changeTypes.put(afterRevision.getFile().getPath(), GenPatchConst.CHANGE_TYPE_ADD);
+                }
             } else {
-                revision = selectedChange.getAfterRevision();
-            }
-            if (revision != null) {
-                changeTypes.put(revision.getFile().getPath(), changeType);
+                ContentRevision afterRevision = selectedChange.getAfterRevision();
+                if (afterRevision != null) {
+                    changeTypes.put(afterRevision.getFile().getPath(), GenPatchConst.CHANGE_TYPE_MOD);
+                }
             }
         }
         return changeTypes;

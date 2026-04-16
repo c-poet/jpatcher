@@ -16,12 +16,12 @@ Suggest pairing [PatchAssistant4J(补丁助手)](https://github.com/c-poet/patch
 
 ## Main Features 🌟
 
-1. Support selecting files that require patch generation from editing windows, project trees, VCS (GIT/SVN) change lists, etc 🗂️
-2. Select files to quickly generate incremental patch packages in ZIP format ⚡
-3. Automatically generate path description files 📝
-4. Support MapStruct to generate files ♻️
-5. Generate patch panel to support selecting dependent JAR packages 📦
-6. Custom patch instruction file template ✏️
+1. 🗂️ Support selecting files that require patch generation from lists such as editing windows, project trees, VCS (GIT/SVN) changes, etc
+2. ⚡ Select files to quickly generate incremental patch packages in ZIP format
+3. 📝 Automatically generate path instruction files and custom patch instruction file templates
+4. ♻️ Support MapStruct generated Mapper files
+5. 📦 Generate patch panel to support selecting dependent JAR packages
+6. 🏷️ Generate change identifiers (add, mod, del) based on VCS (version management)
 
 ## Changelog
 View: [changes.html](changes.html)

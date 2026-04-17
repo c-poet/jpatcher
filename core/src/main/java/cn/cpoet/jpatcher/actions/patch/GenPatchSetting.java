@@ -30,6 +30,16 @@ public final class GenPatchSetting implements PersistentStateComponent<GenPatchS
         public int height = 400;
 
         /**
+         * 面板宽度
+         */
+        public int previewReadmeWidth = 720;
+
+        /**
+         * 面板高度
+         */
+        public int previewReadmeHeight = 400;
+
+        /**
          * 记录最后一次操作的文件名
          */
         public String lastFileName;

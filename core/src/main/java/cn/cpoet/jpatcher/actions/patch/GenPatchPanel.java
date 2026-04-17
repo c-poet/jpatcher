@@ -8,12 +8,14 @@ import cn.cpoet.jpatcher.model.TreeNodeInfo;
 import cn.cpoet.jpatcher.setting.Setting;
 import cn.cpoet.jpatcher.util.*;
 import com.intellij.openapi.application.ReadAction;
+import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.ui.DialogBuilder;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -23,6 +25,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.task.ProjectTaskManager;
 import com.intellij.ui.CheckboxTreeListener;
 import com.intellij.ui.CheckedTreeNode;
+import com.intellij.ui.EditorTextField;
 import com.intellij.ui.JBSplitter;
 import com.intellij.util.ui.JBDimension;
 import org.apache.commons.collections.CollectionUtils;
@@ -42,6 +45,7 @@ import java.awt.event.ComponentEvent;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.Serial;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -111,6 +115,9 @@ public class GenPatchPanel extends JBSplitter {
     public Action getPreviewReadmeAction() {
         if (previewAction == null) {
             previewAction = new TextAction(I18nUtil.t("actions.patch.GenPatchPackageAction.preview-readme")) {
+                @Serial
+                private static final long serialVersionUID = 5893881478285521335L;
+
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     previewReadme();
@@ -122,7 +129,23 @@ public class GenPatchPanel extends JBSplitter {
     }
 
     private void previewReadme() {
-        // TODO BY CPoet 预览说明文件
+        TreeNodeInfo[] treeCheckedNodes = getTreeCheckedNodes();
+        GenPatchBean patchBean = getGenPatch(treeCheckedNodes, true);
+        EditorTextField descEditor = new EditorTextField(patchBean.getDesc().toString());
+        descEditor.setOneLineMode(false);
+        descEditor.setEnabled(false);
+        descEditor.setPreferredSize(new JBDimension(setting.getState().previewReadmeWidth, setting.getState().previewReadmeHeight));
+        descEditor.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                setting.getState().previewReadmeWidth = getWidth();
+                setting.getState().previewReadmeHeight = getHeight();
+            }
+        });
+        descEditor.setFileType(FileTypeManager.getInstance().getFileTypeByFileName(getReadmeFileName()));
+        DialogBuilder descDialogBuilder = new DialogBuilder(project);
+        descDialogBuilder.setCenterPanel(descEditor);
+        descDialogBuilder.show();
     }
 
     public void generate() {
@@ -346,7 +369,7 @@ public class GenPatchPanel extends JBSplitter {
     protected GenPatchBean getGenPatch(ProgressIndicator indicator) {
         TreeNodeInfo[] checkedNodes = getTreeCheckedNodes();
         indicator.setText("Generate patch info");
-        return doGetGenPatch(checkedNodes);
+        return getGenPatch(checkedNodes);
     }
 
     protected boolean buildGenPatchBefore(ProgressIndicator indicator) {
@@ -424,12 +447,16 @@ public class GenPatchPanel extends JBSplitter {
         return false;
     }
 
-    protected GenPatchBean doGetGenPatch(TreeNodeInfo[] treeNodeInfos) {
+    protected GenPatchBean getGenPatch(TreeNodeInfo[] treeNodeInfos) {
+        return getGenPatch(treeNodeInfos, false);
+    }
+
+    protected GenPatchBean getGenPatch(TreeNodeInfo[] treeNodeInfos, boolean isPreviewReadme) {
         GenPatchBean patch = createGenPatch();
         Map<GenPatchModuleBean, List<TreeNodeInfo>> moduleFilesMapping = getModuleFilesMapping(patch, treeNodeInfos);
         for (Map.Entry<GenPatchModuleBean, List<TreeNodeInfo>> entry : moduleFilesMapping.entrySet()) {
             for (TreeNodeInfo nodeInfo : entry.getValue()) {
-                addPatchItem(patch, entry.getKey(), (VirtualFile) nodeInfo.getObject());
+                addPatchItem(patch, entry.getKey(), (VirtualFile) nodeInfo.getObject(), isPreviewReadme);
                 if (patch.isFailed()) {
                     return patch;
                 }
@@ -491,13 +518,13 @@ public class GenPatchPanel extends JBSplitter {
         return false;
     }
 
-    private void addPatchItem(GenPatchBean patch, GenPatchModuleBean patchModule, VirtualFile file) {
-        addPatchItem(patch, patchModule, file, true);
+    private void addPatchItem(GenPatchBean patch, GenPatchModuleBean patchModule, VirtualFile file, boolean isPreviewReadme) {
+        addPatchItem(patch, patchModule, file, true, isPreviewReadme);
     }
 
-    private void addPatchItem(GenPatchBean patch, GenPatchModuleBean patchModule, VirtualFile sourceFile, boolean isMapStruct) {
+    private void addPatchItem(GenPatchBean patch, GenPatchModuleBean patchModule, VirtualFile sourceFile, boolean isMapStruct, boolean isPreviewReadme) {
         FileInfo fileInfo = patchModule.getModule() == null ? FileUtil.getFileInfo(sourceFile) : FileUtil.getFileInfo(patchModule.getModule(), sourceFile);
-        if (fileInfo.getOutputFile() == null) {
+        if (!isPreviewReadme && fileInfo.getOutputFile() == null) {
             patch.setFailed(true);
             UITaskUtil.runUI(() -> Messages.showWarningDialog(project, I18nUtil.tr("actions.patch.GenPatchPackageAction.notFoundOutputFile", sourceFile.getName()), I18nUtil.t("message.warn.title")));
             return;
@@ -509,10 +536,12 @@ public class GenPatchPanel extends JBSplitter {
         String relativePath = FileUtil.removeStartSeparator(fileInfo.getOutputRelativePath());
         patchItem.setFullPath(FilenameUtils.getFullPathNoEndSeparator(relativePath));
         appendPatchModPath(patch, patchItem);
-        addInner2AttachOutFiles(patchItem);
+        if (!isPreviewReadme) {
+            addInner2AttachOutFiles(patchItem);
+        }
         patch.getItems().add(patchItem);
         if (isMapStruct) {
-            addMapStructMapperImpl(patch, patchItem);
+            addMapStructMapperImpl(patch, patchItem, isPreviewReadme);
         }
     }
 
@@ -555,7 +584,7 @@ public class GenPatchPanel extends JBSplitter {
         }
     }
 
-    private void addMapStructMapperImpl(GenPatchBean patch, GenPatchItemBean patchItem) {
+    private void addMapStructMapperImpl(GenPatchBean patch, GenPatchItemBean patchItem, boolean isPreviewReadme) {
         VirtualFile sourceFile = patchItem.getSourceFile();
         FileBuildTypeExtEnum fileExt = MapStructUtil.getSupportBuildTypeExt(sourceFile);
         if (fileExt == null) {
@@ -576,7 +605,7 @@ public class GenPatchPanel extends JBSplitter {
                 addMapStructMapperImpl(patch, patchItem.getPatchModule(), filePath);
                 continue;
             }
-            addPatchItem(patch, patchItem.getPatchModule(), mapperImplFile, false);
+            addPatchItem(patch, patchItem.getPatchModule(), mapperImplFile, false, isPreviewReadme);
         }
     }
 

@@ -31,6 +31,11 @@ public class GenPatchItemBean {
     private VirtualFile outputFile;
 
     /**
+     * 输出文件名
+     */
+    private String outputFileName;
+
+    /**
      * 附加输出文件：例如JAVA内部类
      */
     private List<VirtualFile> attachOutputFiles;
@@ -65,6 +70,14 @@ public class GenPatchItemBean {
 
     public void setOutputFile(VirtualFile outputFile) {
         this.outputFile = outputFile;
+    }
+
+    public String getOutputFileName() {
+        return outputFileName;
+    }
+
+    public void setOutputFileName(String outputFileName) {
+        this.outputFileName = outputFileName;
     }
 
     public List<VirtualFile> getAttachOutputFiles() {

@@ -9,6 +9,7 @@ import cn.cpoet.jpatcher.setting.Setting;
 import cn.cpoet.jpatcher.util.*;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.fileTypes.FileTypeManager;
+import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.progress.ProgressIndicator;
@@ -39,6 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.text.TextAction;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -134,6 +136,7 @@ public class GenPatchPanel extends JBSplitter {
         EditorTextField descEditor = new EditorTextField(patchBean.getDesc().toString());
         descEditor.setOneLineMode(false);
         descEditor.setEnabled(false);
+        descEditor.setAutoscrolls(true);
         descEditor.setPreferredSize(new JBDimension(setting.getState().previewReadmeWidth, setting.getState().previewReadmeHeight));
         descEditor.addComponentListener(new ComponentAdapter() {
             @Override
@@ -144,7 +147,10 @@ public class GenPatchPanel extends JBSplitter {
         });
         descEditor.setFileType(FileTypeManager.getInstance().getFileTypeByFileName(getReadmeFileName()));
         DialogBuilder descDialogBuilder = new DialogBuilder(project);
+        descDialogBuilder.setTitle(I18nUtil.t("actions.patch.GenPatchPackageAction.dialog.title"));
         descDialogBuilder.setCenterPanel(descEditor);
+        descDialogBuilder.addOkAction().setText(I18nUtil.t("actions.patch.GenPatchPackageAction.dialog.copy-to-clipboard"));
+        descDialogBuilder.setOkOperation(() -> CopyPasteManager.getInstance().setContents(new StringSelection(patchBean.getDesc().toString())));
         descDialogBuilder.show();
     }
 
@@ -533,6 +539,7 @@ public class GenPatchPanel extends JBSplitter {
         patchItem.setPatchModule(patchModule);
         patchItem.setSourceFile(fileInfo.getSourceFile());
         patchItem.setOutputFile(fileInfo.getOutputFile());
+        patchItem.setOutputFileName(FilenameUtils.getName(fileInfo.getOutputRelativePath()));
         String relativePath = FileUtil.removeStartSeparator(fileInfo.getOutputRelativePath());
         patchItem.setFullPath(FilenameUtils.getFullPathNoEndSeparator(relativePath));
         appendPatchModPath(patch, patchItem);
@@ -554,13 +561,13 @@ public class GenPatchPanel extends JBSplitter {
             patch.getDesc().append(changeTypeMap.getOrDefault(patchItem.getSourceFile().getPath(), GenPatchConst.CHANGE_TYPE_MOD));
         }
         if (!setting.getState().includePath) {
-            patch.getDesc().append(patchItem.getOutputFile().getName()).append("\t");
+            patch.getDesc().append(patchItem.getOutputFileName()).append("\t");
         }
         appendSpringPathPrefix(patch, patchModule);
         if (StringUtils.isBlank(patchItem.getFullPath())) {
-            patch.getDesc().append(patchItem.getOutputFile().getName());
+            patch.getDesc().append(patchItem.getOutputFileName());
         } else {
-            patch.getDesc().append(patchItem.getFullPath()).append(FileUtil.UNIX_SEPARATOR).append(patchItem.getOutputFile().getName());
+            patch.getDesc().append(patchItem.getFullPath()).append(FileUtil.UNIX_SEPARATOR).append(patchItem.getOutputFileName());
         }
     }
 
@@ -617,6 +624,7 @@ public class GenPatchPanel extends JBSplitter {
             patchItem.setPatchModule(patchModule);
             patchItem.setSourceFile(null);
             patchItem.setOutputFile(outputFile);
+            patchItem.setOutputFileName(outputFile.getName());
             patchItem.setFullPath(FilenameUtils.getFullPathNoEndSeparator(FileUtil.removeStartSeparator(filePath)));
             appendPatchModPath(patch, patchItem);
             addInner2AttachOutFiles(patchItem);

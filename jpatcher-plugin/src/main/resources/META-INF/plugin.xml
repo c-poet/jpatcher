@@ -37,6 +37,7 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.vcs</depends>
     <depends config-file="plugin_java.xml">com.intellij.modules.java</depends>
+    <depends optional="true" config-file="plugin_mcp.xml">com.intellij.mcpServer</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <applicationConfigurable parentId="tools" instance="cn.cpoet.jpatcher.setting.Configurable" id="cn.cpoet.jpatcher.setting.Configurable" displayName="JPatcher"/>

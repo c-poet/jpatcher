@@ -19,7 +19,7 @@ plugins {
 }
 
 group = "cn.cpoet.jpatcher"
-version = "2026.5.0"
+version = "M2026.5.0"
 
 dependencies {
     implementation(project(":core")) {
@@ -33,19 +33,19 @@ dependencies {
     }
 
     intellijPlatform {
-        // intellijIdea("2022.3")
-        intellijIdea("2024.3")
-        // intellijIdea("2025.3")
+        intellijIdea("2025.3")
 
         bundledPlugin("com.intellij.database")
         bundledPlugin("com.intellij.java")
         bundledPlugin("com.intellij.spring")
+        plugin("com.intellij.mcpServer:253.29346.142")
     }
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
 }
 
 tasks {
@@ -55,7 +55,7 @@ tasks {
     }
 
     patchPluginXml {
-        sinceBuild.set("223")
+        sinceBuild.set("253")
         untilBuild.set("261.*")
         changeNotes.set(providers.provider {
             rootProject.file("changes.html").readText()

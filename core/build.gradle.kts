@@ -26,7 +26,6 @@ dependencies {
         bundledPlugin("com.intellij.database")
         bundledPlugin("com.intellij.java")
         bundledPlugin("com.intellij.spring")
-        plugin("com.intellij.mcpServer:1.0.30")
     }
 }
 

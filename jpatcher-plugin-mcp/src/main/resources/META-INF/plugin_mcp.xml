@@ -1,0 +1,5 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+        <mcpServer.mcpToolset implementation="cn.cpoet.jpatcher.mcp.JPatcherToolSet" />
+    </extensions>
+</idea-plugin>

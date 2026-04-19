@@ -19,7 +19,7 @@ plugins {
 }
 
 group = "cn.cpoet.jpatcher"
-version = "2026.4.3"
+version = "2026.5.0"
 
 dependencies {
     implementation(project(":core")) {
